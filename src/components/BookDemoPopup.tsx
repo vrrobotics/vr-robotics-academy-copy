@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Rocket, CheckCircle } from 'lucide-react';
 import { trackEvent } from '@/components/AnalyticsTracker';
 
 export default function BookDemoPopup() {
+  const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
 

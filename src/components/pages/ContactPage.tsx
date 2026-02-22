@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { messageService } from '@/services/messageService';
@@ -7,6 +8,7 @@ import Header from '@/components/Header';
 import BookDemoPopup from '@/components/BookDemoPopup';
 
 export default function ContactPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -282,7 +284,7 @@ export default function ContactPage() {
                   className="bg-secondary text-secondary-foreground font-heading font-semibold px-6 py-3 rounded-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => window.location.href = '/demo-booking'}
+                  onClick={() => navigate('/demo-booking')}
                 >
                   Book Demo Instead
                 </motion.button>

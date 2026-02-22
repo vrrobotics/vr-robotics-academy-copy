@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, Award, Settings, BarChart3, Bell, FileText, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { addCertificateExamples } from '@/services/certificateService';
 
 export default function AdminPanelPage() {
+  const navigate = useNavigate();
   const [addingCerts, setAddingCerts] = useState(false);
   const [certMessage, setCertMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const stats = [
@@ -268,7 +270,7 @@ export default function AdminPanelPage() {
                 className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
               >
                 Back to Home
               </motion.button>
@@ -276,7 +278,7 @@ export default function AdminPanelPage() {
                 className="bg-transparent text-secondary border-2 border-secondary font-heading font-semibold px-8 py-4 rounded-lg"
                 whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 211, 158, 0.1)' }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/contact'}
+                onClick={() => navigate('/contact')}
               >
                 Contact Support
               </motion.button>

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { ArrowRight, CheckCircle, Clock, Users, BookOpen, Trophy, Zap } from 'lucide-react';
 import Header from '@/components/Header';
@@ -125,6 +126,7 @@ const WelcomeIllustration = () => (
 );
 
 export default function AdmissionProcessPage() {
+  const navigate = useNavigate();
   // Admission steps with SVG illustrations
   const steps = [
     {
@@ -246,7 +248,7 @@ export default function AdmissionProcessPage() {
                         className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => window.location.href = '/student-application'}
+                        onClick={() => navigate('/student-application')}
                       >
                         Start Application
                         <ArrowRight className="w-5 h-5" />
@@ -551,7 +553,7 @@ export default function AdmissionProcessPage() {
                 className="bg-primary text-primary-foreground font-heading font-semibold px-10 py-4 rounded-lg text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/demo-booking'}
+                onClick={() => navigate('/demo-booking')}
               >
                 Book Free Demo
               </motion.button>
@@ -559,7 +561,7 @@ export default function AdmissionProcessPage() {
                 className="bg-transparent text-secondary border-2 border-secondary font-heading font-semibold px-10 py-4 rounded-lg text-lg"
                 whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 211, 158, 0.1)' }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/contact'}
+                onClick={() => navigate('/contact')}
               >
                 Contact Us
               </motion.button>

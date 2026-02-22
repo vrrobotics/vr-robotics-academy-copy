@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, CheckCircle, Award, Lightbulb, Heart } from 'lucide-react';
 import { Image } from '@/components/ui/image';
 import { BaseCrudService } from '@/integrations';
@@ -9,6 +10,7 @@ import { GoogleSheetsService } from '@/services/googleSheetsService';
 import Header from '@/components/Header';
 
 export default function DemoBookingPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     parentName: '',
     email: '',
@@ -217,7 +219,7 @@ export default function DemoBookingPage() {
             className="w-full bg-primary text-primary-foreground font-heading font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-[10px]"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/')}
           >
             Back to Home
           </motion.button>

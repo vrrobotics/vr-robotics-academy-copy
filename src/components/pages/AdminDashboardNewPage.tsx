@@ -129,7 +129,7 @@ export default function AdminDashboardNewPage() {
               <h2 className="text-xl font-heading font-bold text-red-400 mb-2">Access Denied</h2>
               <p className="text-red-300">{error}</p>
               <Button
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 className="mt-4 bg-primary hover:bg-primary/90"
               >
                 Return to Home

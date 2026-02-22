@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { BaseCrudService } from '@/integrations';
 import { Mission } from '@/stores/gamificationStore';
 
 export default function GamifiedMissionMap() {
+  const navigate = useNavigate();
   const { missions, playerProgress, unlockMission, completeMission } = useGamificationStore();
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -177,7 +179,7 @@ export default function GamifiedMissionMap() {
             <button
               onClick={() => {
                 // Navigate to mission game
-                window.location.href = `/mission/${selectedMission._id}`;
+                navigate(`/mission/${selectedMission._id}`);
               }}
               className="w-full bg-primary text-secondary-foreground font-bold py-3 rounded-lg hover:bg-primary/90 transition-all"
             >

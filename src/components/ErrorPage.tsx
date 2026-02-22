@@ -1,8 +1,9 @@
-import { useRouteError, isRouteErrorResponse } from "react-router-dom";
+import { useRouteError, isRouteErrorResponse, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, AlertTriangle } from "lucide-react";
 
 export default function ErrorPage() {
+  const navigate = useNavigate();
   const error = useRouteError();
 
   let errorMessage = "An unexpected error occurred";
@@ -45,7 +46,7 @@ export default function ErrorPage() {
 
         {/* Action Button */}
         <Button
-          onClick={() => window.location.href = "/"}
+          onClick={() => navigate("/")}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
         >
           <Home className="w-5 h-5" />

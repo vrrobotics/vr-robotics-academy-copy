@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { CertificateExamples } from '@/entities';
 import { Award, CheckCircle, Star, Trophy } from 'lucide-react';
@@ -295,6 +296,7 @@ const CertificateCard = ({ cert, index }: { cert: CertificateExamples; index: nu
 };
 
 export default function CertificatesPage() {
+  const navigate = useNavigate();
   const [certificates, setCertificates] = useState<CertificateExamples[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -567,7 +569,7 @@ export default function CertificatesPage() {
               className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-[10px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => window.location.href = '/demo-booking'}
+              onClick={() => navigate('/demo-booking')}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

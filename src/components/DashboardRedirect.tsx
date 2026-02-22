@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useRole } from '@/hooks/useRole';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -7,6 +8,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
  * Used on /dashboard route to automatically route to correct dashboard
  */
 export function DashboardRedirect() {
+  const navigate = useNavigate();
   const { currentRole, isLoading } = useRole();
 
   useEffect(() => {
@@ -22,8 +24,8 @@ export function DashboardRedirect() {
 
     const targetPath = dashboardMap[currentRole] || '/';
     console.log(`[DashboardRedirect] Redirecting ${currentRole} to ${targetPath}`);
-    window.location.href = targetPath;
-  }, [currentRole, isLoading]);
+    navigate(targetPath);
+  }, [currentRole, isLoading, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
