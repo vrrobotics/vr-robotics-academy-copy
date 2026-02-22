@@ -59,6 +59,12 @@ export class SupabaseCrudService {
    */
   static async getAll<T>(tableName: string): Promise<{ items: T[] }> {
     try {
+      // Handle when Supabase is not configured (GitHub Pages static deployment)
+      if (!supabase) {
+        console.warn(`[SupabaseCrudService] Supabase not initialized - returning empty items for ${tableName}`);
+        return { items: [] };
+      }
+
       const { data, error } = await supabase
         .from(tableName)
         .select("*");
@@ -69,7 +75,7 @@ export class SupabaseCrudService {
       }
       return { items: data as T[] };
     } catch (err) {
-      console.warn(`[SupabaseCrudService] Warning: Fetch operation failed for ${tableName}`);
+      console.warn(`[SupabaseCrudService] Warning: Fetch operation failed for ${tableName}:`, err);
       return { items: [] };
     }
   }
