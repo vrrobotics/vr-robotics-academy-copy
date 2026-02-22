@@ -16,5 +16,5 @@ export default defineConfig({
     port: 3000,
   },
   
-  output: 'static',
+  output: 'hybrid',
 });

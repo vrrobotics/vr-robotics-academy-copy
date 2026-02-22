@@ -32,7 +32,6 @@ const ProgramFeesPage = lazy(() => import("@/components/pages/ProgramFeesPage"))
 const WhyVRRoboticsPage = lazy(() => import("@/components/pages/WhyVRRoboticsPage"));
 const WhatKidsLearnPage = lazy(() => import("@/components/pages/WhatKidsLearnPage"));
 const HowKidsBuildPage = lazy(() => import("@/components/pages/HowKidsBuildPage"));
-// const PiRoboticsTinkererPage = lazy(() => import("@/components/pages/PiRoboticsTinkererPage"));
 const PythonProgrammingPage = lazy(() => import("@/components/pages/PythonProgrammingPage"));
 const Interactive3DRobotPage = lazy(() => import("@/components/pages/Interactive3DRobotPage"));
 const Grades1to3CurriculumPage = lazy(() => import("@/components/pages/Grades1to3CurriculumPage"));
@@ -40,7 +39,7 @@ const Grades1to3CurriculumPage = lazy(() => import("@/components/pages/Grades1to
 // Module pages
 const ModuleDetailsPage = lazy(() => import("@/components/pages/ModuleDetailsPage"));
 const Module1DetailsPage = lazy(() => import("@/components/pages/Module1DetailsPage"));
-// const Module2DetailsPage = lazy(() => import("@/components/pages/Module2DetailsPage"));
+const Module2DetailsPage = lazy(() => import("@/components/pages/Module2DetailsPage"));
 const Module3DetailsPage = lazy(() => import("@/components/pages/Module3DetailsPage"));
 const Module4DetailsPage = lazy(() => import("@/components/pages/Module4DetailsPage"));
 const Module5DetailsPage = lazy(() => import("@/components/pages/Module5DetailsPage"));
@@ -49,27 +48,6 @@ const Module7DetailsPage = lazy(() => import("@/components/pages/Module7DetailsP
 const Module8DetailsPage = lazy(() => import("@/components/pages/Module8DetailsPage"));
 const Module9DetailsPage = lazy(() => import("@/components/pages/Module9DetailsPage"));
 
-// Grade-specific modules
-// const Module1Grade47Page = lazy(() => import("@/components/pages/Module1Grade47Page"));
-// const Module1Grade812Page = lazy(() => import("@/components/pages/Module1Grade812Page"));
-// const Module2Grade13Page = lazy(() => import("@/components/pages/Module2Grade13Page"));
-// const Module2Grade47Page = lazy(() => import("@/components/pages/Module2Grade47Page"));
-// const Module2Grade812Page = lazy(() => import("@/components/pages/Module2Grade812Page"));
-// const Module3Grade47Page = lazy(() => import("@/components/pages/Module3Grade47Page"));
-// const Module3Grade812Page = lazy(() => import("@/components/pages/Module3Grade812Page"));
-// const Module4Grade812Page = lazy(() => import("@/components/pages/Module4Grade812Page"));
-// const Module5Grade13Page = lazy(() => import("@/components/pages/Module5Grade13Page"));
-// const Module5Grade47Page = lazy(() => import("@/components/pages/Module5Grade47Page"));
-// const Module5Grade812Page = lazy(() => import("@/components/pages/Module5Grade812Page"));
-// const Module6Grade13Page = lazy(() => import("@/components/pages/Module6Grade13Page"));
-// const Module6Grade812Page = lazy(() => import("@/components/pages/Module6Grade812Page"));
-// const Module7Grade13Page = lazy(() => import("@/components/pages/Module7Grade13Page"));
-// const Module7Grade812Page = lazy(() => import("@/components/pages/Module7Grade812Page"));
-// const Module8Grade812Page = lazy(() => import("@/components/pages/Module8Grade812Page"));
-// const Module9Grade812Page = lazy(() => import("@/components/pages/Module9Grade812Page"));
-// const Module10Grade812Page = lazy(() => import("@/components/pages/Module10Grade812Page"));
-// const Module11Grade812Page = lazy(() => import("@/components/pages/Module11Grade812Page"));
-// const Module12Grade812Page = lazy(() => import("@/components/pages/Module12Grade812Page"));
 
 // Student pages
 const StudentApplicationPage = lazy(() => import("@/components/pages/StudentApplicationPage"));
@@ -170,10 +148,6 @@ const router = createBrowserRouter([
     element: <SuspenseWrapper><HowKidsBuildPage /></SuspenseWrapper>,
   },
   {
-    path: "pi-robotics-tinkerer",
-    element: <SuspenseWrapper><PiRoboticsTinkererPage /></SuspenseWrapper>,
-  },
-  {
     path: "python-programming",
     element: <SuspenseWrapper><PythonProgrammingPage /></SuspenseWrapper>,
   },
@@ -226,86 +200,6 @@ const router = createBrowserRouter([
   {
     path: "module-9",
     element: <SuspenseWrapper><Module9DetailsPage /></SuspenseWrapper>,
-  },
-  {
-    path: "module-1-grade-4-7",
-    element: <SuspenseWrapper><Module1Grade47Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-1-grade-8-12",
-    element: <SuspenseWrapper><Module1Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-2-grade-1-3",
-    element: <SuspenseWrapper><Module2Grade13Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-2-grade-4-7",
-    element: <SuspenseWrapper><Module2Grade47Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-2-grade-8-12",
-    element: <SuspenseWrapper><Module2Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-3-grade-4-7",
-    element: <SuspenseWrapper><Module3Grade47Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-3-grade-8-12",
-    element: <SuspenseWrapper><Module3Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-4-grade-8-12",
-    element: <SuspenseWrapper><Module4Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-5-grade-1-3",
-    element: <SuspenseWrapper><Module5Grade13Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-5-grade-4-7",
-    element: <SuspenseWrapper><Module5Grade47Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-5-grade-8-12",
-    element: <SuspenseWrapper><Module5Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-6-grade-1-3",
-    element: <SuspenseWrapper><Module6Grade13Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-6-grade-8-12",
-    element: <SuspenseWrapper><Module6Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-7-grade-1-3",
-    element: <SuspenseWrapper><Module7Grade13Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-7-grade-8-12",
-    element: <SuspenseWrapper><Module7Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-8-grade-8-12",
-    element: <SuspenseWrapper><Module8Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-9-grade-8-12",
-    element: <SuspenseWrapper><Module9Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-10-grade-8-12",
-    element: <SuspenseWrapper><Module10Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-11-grade-8-12",
-    element: <SuspenseWrapper><Module11Grade812Page /></SuspenseWrapper>,
-  },
-  {
-    path: "module-12-grade-8-12",
-    element: <SuspenseWrapper><Module12Grade812Page /></SuspenseWrapper>,
   },
 
   // Authentication Pages
@@ -483,7 +377,9 @@ const router = createBrowserRouter([
     path: "certificates",
     element: <SuspenseWrapper><CertificatesPage /></SuspenseWrapper>,
   },
-]);
+], {
+  basename: '/vr-robotics-academy'
+});
 
 export default function AppRouter() {
   console.log("[Router] AppRouter mounted");
