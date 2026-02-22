@@ -3,9 +3,8 @@ import tailwind from "@astrojs/tailwind";
 import react from "@astrojs/react";
 
 export default defineConfig({
-  // Uncomment for GitHub Pages deployment
-  // site: 'https://YOUR_USERNAME.github.io',
-  // base: '/vr-robotics', // Change to your repo name if not using username.github.io
+  site: 'https://vrrobotics.github.io',
+  base: '/vr-robotics-academy',
   
   integrations: [
     tailwind(),
@@ -17,5 +16,5 @@ export default defineConfig({
     port: 3000,
   },
   
-  output: 'static', // Static site generation for GitHub Pages
+  output: 'static',
 });
