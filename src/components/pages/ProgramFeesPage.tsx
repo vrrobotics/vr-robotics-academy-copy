@@ -1,0 +1,362 @@
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { BaseCrudService } from '@/integrations';
+import { ProgramFees } from '@/entities';
+import { Check, Star } from 'lucide-react';
+import Header from '@/components/Header';
+
+export default function ProgramFeesPage() {
+  const [plans, setPlans] = useState<ProgramFees[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  const loadPlans = async () => {
+    setLoading(true);
+    const { items } = await BaseCrudService.getAll<ProgramFees>('programfees');
+    
+    // Update prices to $150, $250, and $320 for the first three plans
+    const updatedItems = items.map((item, index) => {
+      const prices = [150, 250, 320];
+      if (index < prices.length && item.price !== prices[index]) {
+        // Update the price in the database
+        BaseCrudService.update('programfees', {
+          _id: item._id,
+          price: prices[index]
+        });
+        return { ...item, price: prices[index] };
+      }
+      return item;
+    });
+    
+    setPlans(updatedItems);
+    setLoading(false);
+  };
+
+  return (
+    <>
+      <Header />
+      <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+      {/* Circuit Background */}
+      <div className="fixed inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(90deg, rgba(216, 255, 145, 0.1) 1px, transparent 1px),
+            linear-gradient(rgba(216, 255, 145, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative py-24 px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <motion.h1
+            className="font-heading text-6xl lg:text-7xl mb-8 text-primary"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              textShadow: '0 0 30px rgba(216, 255, 145, 0.4)'
+            }}
+          >
+            Program Fees
+          </motion.h1>
+          <motion.p
+            className="font-paragraph text-xl lg:text-2xl text-foreground/90 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            Choose the perfect plan for your robotics learning journey
+          </motion.p>
+        </div>
+      </section>
+
+      {/* Pricing Cards */}
+      <section className="relative py-16 px-8">
+        <div className="max-w-7xl mx-auto">
+          {loading ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="p-10 rounded-3xl animate-pulse"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <div className="h-8 bg-foreground/10 rounded mb-4" />
+                  <div className="h-12 bg-foreground/10 rounded mb-6" />
+                  <div className="h-4 bg-foreground/10 rounded mb-2" />
+                  <div className="h-4 bg-foreground/10 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8">
+              {plans.map((plan, index) => (
+                <motion.div
+                  key={plan._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -8 }}
+                  className={`relative p-10 rounded-3xl ${plan.isRecommended ? 'lg:scale-105' : ''}`}
+                  style={{
+                    background: plan.isRecommended 
+                      ? 'linear-gradient(135deg, rgba(216, 255, 145, 0.1), rgba(255, 211, 158, 0.1))'
+                      : 'rgba(255, 255, 255, 0.05)',
+                    border: plan.isRecommended 
+                      ? '2px solid rgba(216, 255, 145, 0.3)'
+                      : '1px solid rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  {plan.isRecommended && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full bg-primary flex items-center gap-2">
+                      <Star className="w-4 h-4 text-primary-foreground fill-current" />
+                      <span className="font-heading text-sm text-primary-foreground font-semibold">
+                        RECOMMENDED
+                      </span>
+                    </div>
+                  )}
+
+                  <h3 className="font-heading text-3xl mb-4 text-foreground">{plan.planName}</h3>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-heading text-5xl text-primary">
+                        ${plan.price}
+                      </span>
+                      {plan.billingCycle && (
+                        <span className="font-paragraph text-foreground/60">
+                          /{plan.billingCycle}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {plan.shortDescription && (
+                    <p className="font-paragraph text-lg text-foreground/80 mb-6 leading-relaxed">
+                      {plan.shortDescription}
+                    </p>
+                  )}
+
+                  {plan.featuresSummary && (
+                    <div className="space-y-3 mb-8">
+                      {plan.featuresSummary.split('\n').filter(f => f.trim()).map((feature, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                          <span className="font-paragraph text-foreground/90">{feature.trim()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <motion.button
+                    className={`w-full font-heading font-semibold px-8 py-4 rounded-lg ${
+                      plan.isRecommended
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-transparent text-primary border-2 border-primary'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => window.location.href = '/demo-booking'}
+                  >
+                    {plan.callToActionText || 'Get Started'}
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Additional Info */}
+      <section className="relative py-24 px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.h2
+            className="font-heading text-5xl text-center mb-16 text-secondary"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{
+              textShadow: '0 0 30px rgba(255, 211, 158, 0.4)'
+            }}
+          >
+            What's Included
+          </motion.h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                title: 'Expert Instruction',
+                description: 'Learn from industry professionals with real-world experience'
+              },
+              {
+                title: 'All Materials',
+                description: 'Robotics kits, VR headsets, and software licenses included'
+              },
+              {
+                title: 'Small Classes',
+                description: 'Maximum 8 students per class for personalized attention'
+              },
+              {
+                title: 'Certificates',
+                description: 'Industry-recognized certificates upon completion'
+              },
+              {
+                title: 'Project Support',
+                description: 'One-on-one mentorship for your projects'
+              },
+              {
+                title: 'Online Resources',
+                description: 'Access to learning platform and video tutorials'
+              },
+              {
+                title: 'Community Access',
+                description: 'Join our community of young innovators'
+              },
+              {
+                title: 'Flexible Schedule',
+                description: 'Weekend and weekday batches available'
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                className="p-6 rounded-2xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <h3 className="font-heading text-xl mb-2 text-foreground">{item.title}</h3>
+                <p className="font-paragraph text-sm text-foreground/70">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="relative py-24 px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.h2
+            className="font-heading text-5xl text-center mb-16 text-primary"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{
+              textShadow: '0 0 30px rgba(216, 255, 145, 0.4)'
+            }}
+          >
+            Frequently Asked Questions
+          </motion.h2>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                question: 'Are there any additional fees?',
+                answer: 'No hidden fees! All materials, equipment, and software are included in the program fee.'
+              },
+              {
+                question: 'Can I switch plans?',
+                answer: 'Yes, you can upgrade or change your plan at any time. Contact us for details.'
+              },
+              {
+                question: 'Is there a refund policy?',
+                answer: 'We offer a 30-day money-back guarantee if you\'re not satisfied with the program.'
+              },
+              {
+                question: 'Do you offer scholarships?',
+                answer: 'Yes! We offer merit-based and need-based scholarships. Contact us to learn more.'
+              }
+            ].map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="p-8 rounded-2xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <h3 className="font-heading text-xl mb-3 text-foreground">{faq.question}</h3>
+                <p className="font-paragraph text-foreground/70">{faq.answer}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative py-24 px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="p-16 rounded-3xl text-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(216, 255, 145, 0.1), rgba(255, 211, 158, 0.1))',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            <motion.h2
+              className="font-heading text-4xl lg:text-5xl mb-6 text-foreground"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              Still Have Questions?
+            </motion.h2>
+            <motion.p
+              className="font-paragraph text-xl text-foreground/80 mb-8 max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              Book a free demo or contact us to learn more about our programs and pricing!
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
+              <motion.button
+                className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.href = '/demo-booking'}
+              >
+                Book Free Demo
+              </motion.button>
+              <motion.button
+                className="bg-transparent text-secondary border-2 border-secondary font-heading font-semibold px-8 py-4 rounded-lg"
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 211, 158, 0.1)' }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.href = '/contact'}
+              >
+                Contact Us
+              </motion.button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      </div>
+    </>
+  );
+}

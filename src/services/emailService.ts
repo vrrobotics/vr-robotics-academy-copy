@@ -1,0 +1,529 @@
+/**
+ * Email Service
+ * Handles sending emails for teacher registration and document submissions
+ * Now using Gmail SMTP via API endpoint
+ */
+
+interface EmailPayload {
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string; // base64 encoded
+    contentType: string;
+  }>;
+}
+
+class EmailService {
+  private static readonly ADMIN_EMAIL = 'abhinavneeraj.bade@gmail.com';
+  private static readonly API_ENDPOINT = '/api/send-email';
+
+  /**
+   * Send teacher registration email with documents
+   */
+  static async sendTeacherRegistrationEmail(
+    teacherData: {
+      fullName: string;
+      email: string;
+      phoneNumber?: string;
+      documents: Array<{
+        name: string;
+        content: string; // base64
+        type: string;
+      }>;
+    }
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      console.log('[EmailService] Preparing teacher registration email for:', teacherData.email);
+
+      // Build HTML email content
+      const htmlContent = this.buildTeacherRegistrationHTML(teacherData);
+
+      // Prepare attachments
+      const attachments = teacherData.documents.map(doc => ({
+        filename: doc.name,
+        content: doc.content,
+        contentType: doc.type,
+      }));
+
+      // Send email to admin
+      const payload: EmailPayload = {
+        to: this.ADMIN_EMAIL,
+        subject: `New Teacher Registration: ${teacherData.fullName}`,
+        html: htmlContent,
+        attachments,
+      };
+
+      console.log('[EmailService] Sending email to admin:', this.ADMIN_EMAIL);
+      console.log('[EmailService] Email payload:', {
+        to: payload.to,
+        subject: payload.subject,
+        attachmentCount: attachments.length,
+      });
+
+      // For now, we'll simulate the email sending
+      // In production, you would use a real email service like Resend, SendGrid, etc.
+      return this.simulateEmailSend(payload);
+    } catch (error) {
+      console.error('[EmailService] Error sending email:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send email',
+      };
+    }
+  }
+
+  /**
+   * Build HTML content for teacher registration email
+   */
+  private static buildTeacherRegistrationHTML(teacherData: {
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    documents: Array<{ name: string }>;
+  }): string {
+    const documentList = teacherData.documents
+      .map(doc => `<li>${doc.name}</li>`)
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #FF6A00; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .content { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+            .field { margin-bottom: 15px; }
+            .label { font-weight: bold; color: #FF6A00; }
+            .documents { background-color: #fff; padding: 15px; border-radius: 6px; border-left: 4px solid #FF6A00; }
+            .documents h3 { margin-top: 0; color: #FF6A00; }
+            .documents ul { margin: 10px 0; padding-left: 20px; }
+            .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>New Teacher Registration</h1>
+              <p>A new teacher has submitted their registration with documents for review.</p>
+            </div>
+            
+            <div class="content">
+              <div class="field">
+                <span class="label">Full Name:</span> ${teacherData.fullName}
+              </div>
+              <div class="field">
+                <span class="label">Email:</span> ${teacherData.email}
+              </div>
+              ${teacherData.phoneNumber ? `
+              <div class="field">
+                <span class="label">Phone Number:</span> ${teacherData.phoneNumber}
+              </div>
+              ` : ''}
+            </div>
+
+            <div class="documents">
+              <h3>📎 Submitted Documents</h3>
+              <ul>
+                ${documentList}
+              </ul>
+              <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                All documents are attached to this email for your review.
+              </p>
+            </div>
+
+            <div class="footer">
+              <p>VR Robotics Academy - Teacher Registration System</p>
+              <p>This is an automated email. Please do not reply directly to this address.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Send email via Gmail SMTP API endpoint
+   */
+  private static async sendEmailViaGmail(payload: EmailPayload): Promise<{
+    success: boolean;
+    messageId?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('[EmailService] ===== EMAIL SEND ATTEMPT (GMAIL SMTP) =====');
+      console.log('[EmailService] To:', payload.to);
+      console.log('[EmailService] Subject:', payload.subject);
+      console.log('[EmailService] Calling API endpoint:', this.API_ENDPOINT);
+
+      const response = await fetch(this.API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: payload.to,
+          subject: payload.subject,
+          html: payload.html,
+        }),
+      });
+
+      console.log('[EmailService] Response status:', response.status);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('[EmailService] ✗ Error from API:', data);
+        return {
+          success: false,
+          error: data.error || 'Failed to send email',
+        };
+      }
+
+      console.log('[EmailService] ✓✓✓ Email sent successfully via Gmail SMTP!');
+      console.log('[EmailService] Message ID:', data.messageId);
+      console.log('[EmailService] ===== EMAIL SEND SUCCESS =====');
+
+      return {
+        success: true,
+        messageId: data.messageId,
+      };
+    } catch (error) {
+      console.error('[EmailService] ✗✗✗ ERROR sending email:', error);
+      console.error('[EmailService] Error type:', error instanceof Error ? error.message : 'Unknown');
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Simulate email sending with delay (fallback for development/testing)
+   */
+  private static async simulateEmailSendWithDelay(payload: EmailPayload): Promise<{
+    success: boolean;
+    messageId?: string;
+    error?: string;
+  }> {
+    return new Promise((resolve) => {
+      // Simulate API delay
+      setTimeout(() => {
+        console.log('[EmailService] ✓ Email sent successfully (SIMULATED)');
+        console.log('[EmailService] Email details:', {
+          to: payload.to,
+          subject: payload.subject,
+          attachments: payload.attachments?.length || 0,
+        });
+
+        resolve({
+          success: true,
+          messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        });
+      }, 1000);
+    });
+  }
+
+  /**
+   * Main method to send emails (routes to appropriate service)
+   */
+  private static async simulateEmailSend(payload: EmailPayload): Promise<{
+    success: boolean;
+    messageId?: string;
+    error?: string;
+  }> {
+    return this.sendEmailViaGmail(payload);
+  }
+
+  /**
+   * Send confirmation email to teacher
+   */
+  static async sendTeacherConfirmationEmail(
+    teacherEmail: string,
+    teacherName: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #FF6A00; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+              .content { background-color: #f9f9f9; padding: 20px; border-radius: 8px; }
+              .message { font-size: 16px; line-height: 1.6; }
+              .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Registration Received</h1>
+              </div>
+              
+              <div class="content">
+                <p class="message">
+                  Dear ${teacherName},<br><br>
+                  Thank you for submitting your teacher registration with VR Robotics Academy!<br><br>
+                  <strong>Your documents have been received and are under review.</strong><br><br>
+                  We will review your credentials and documents, and you can expect to hear from us within <strong>24 hours</strong>.<br><br>
+                  If you have any questions in the meantime, please don't hesitate to contact us.<br><br>
+                  Best regards,<br>
+                  VR Robotics Academy Team
+                </p>
+              </div>
+
+              <div class="footer">
+                <p>VR Robotics Academy - Teacher Registration System</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const payload: EmailPayload = {
+        to: teacherEmail,
+        subject: 'Registration Received - VR Robotics Academy',
+        html: htmlContent,
+      };
+
+      return this.simulateEmailSend(payload);
+    } catch (error) {
+      console.error('[EmailService] Error sending confirmation email:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send confirmation email',
+      };
+    }
+  }
+
+  /**
+   * Send demo booking notification email to admin
+   */
+  static async sendDemoBookingEmail(demoData: {
+    parentName: string;
+    parentEmail: string;
+    parentPhone: string;
+    childName: string;
+    childAge: number;
+    preferredDate: string;
+    preferredTime: string;
+    interests?: string;
+    message?: string;
+    teacherId?: string;
+  }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      console.log('[EmailService] Preparing demo booking email for admin');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; }
+              .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #FF6A00; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+              .header h1 { margin: 0; font-size: 24px; }
+              .content { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+              .field { margin-bottom: 15px; padding: 12px; background-color: white; border-left: 4px solid #FF6A00; border-radius: 4px; }
+              .label { font-weight: bold; color: #FF6A00; display: block; margin-bottom: 5px; }
+              .value { color: #333; }
+              .section-title { font-weight: bold; color: #FF6A00; margin-top: 20px; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #FF6A00; padding-bottom: 8px; }
+              .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🎉 New Demo Booking Request</h1>
+                <p>A new student has booked a demo session!</p>
+              </div>
+              
+              <div class="content">
+                <div class="section-title">Parent/Guardian Information</div>
+                <div class="field">
+                  <span class="label">Name:</span>
+                  <span class="value">${demoData.parentName}</span>
+                </div>
+                <div class="field">
+                  <span class="label">Email:</span>
+                  <span class="value"><a href="mailto:${demoData.parentEmail}">${demoData.parentEmail}</a></span>
+                </div>
+                <div class="field">
+                  <span class="label">Phone:</span>
+                  <span class="value"><a href="tel:${demoData.parentPhone}">${demoData.parentPhone}</a></span>
+                </div>
+
+                <div class="section-title">Student Information</div>
+                <div class="field">
+                  <span class="label">Child's Name:</span>
+                  <span class="value">${demoData.childName}</span>
+                </div>
+                <div class="field">
+                  <span class="label">Child's Age:</span>
+                  <span class="value">${demoData.childAge} years</span>
+                </div>
+                ${demoData.interests ? `
+                <div class="field">
+                  <span class="label">Interests:</span>
+                  <span class="value">${demoData.interests}</span>
+                </div>
+                ` : ''}
+
+                <div class="section-title">Demo Session Details</div>
+                <div class="field">
+                  <span class="label">Preferred Date:</span>
+                  <span class="value">${new Date(demoData.preferredDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+                <div class="field">
+                  <span class="label">Preferred Time:</span>
+                  <span class="value">${this.formatTimeSlot(demoData.preferredTime)}</span>
+                </div>
+                ${demoData.message ? `
+                <div class="field">
+                  <span class="label">Additional Message:</span>
+                  <span class="value">${demoData.message}</span>
+                </div>
+                ` : ''}
+
+                <div style="background-color: #FFE6CC; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #FF6A00;">
+                  <p style="margin: 0; color: #333;"><strong>Next Steps:</strong> Review this booking and contact the parent to confirm the demo session.</p>
+                </div>
+              </div>
+
+              <div class="footer">
+                <p>VR Robotics Academy - Demo Booking System</p>
+                <p>This is an automated email. Please do not reply directly to this address.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const payload: EmailPayload = {
+        to: this.ADMIN_EMAIL,
+        subject: `🎉 New Demo Booking: ${demoData.childName} - ${demoData.preferredDate}`,
+        html: htmlContent,
+      };
+
+      console.log('[EmailService] Sending demo booking email to admin:', this.ADMIN_EMAIL);
+      return this.simulateEmailSend(payload);
+    } catch (error) {
+      console.error('[EmailService] Error sending demo booking email:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send demo booking email',
+      };
+    }
+  }
+
+  /**
+   * Send student registration notification email to admin
+   */
+  static async sendStudentRegistrationEmail(studentData: {
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    age: number;
+    gender: string;
+  }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      console.log('[EmailService] Preparing student registration email for admin');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; }
+              .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #FF6A00; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+              .header h1 { margin: 0; font-size: 24px; }
+              .content { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+              .field { margin-bottom: 15px; padding: 12px; background-color: white; border-left: 4px solid #FF6A00; border-radius: 4px; }
+              .label { font-weight: bold; color: #FF6A00; display: block; margin-bottom: 5px; }
+              .value { color: #333; }
+              .section-title { font-weight: bold; color: #FF6A00; margin-top: 20px; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #FF6A00; padding-bottom: 8px; }
+              .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>✨ New Student Registration</h1>
+                <p>A new student has registered for the VR Robotics Academy!</p>
+              </div>
+              
+              <div class="content">
+                <div class="section-title">Student Information</div>
+                <div class="field">
+                  <span class="label">Full Name:</span>
+                  <span class="value">${studentData.fullName}</span>
+                </div>
+                <div class="field">
+                  <span class="label">Email:</span>
+                  <span class="value"><a href="mailto:${studentData.email}">${studentData.email}</a></span>
+                </div>
+                <div class="field">
+                  <span class="label">Phone Number:</span>
+                  <span class="value"><a href="tel:${studentData.phoneNumber}">${studentData.phoneNumber}</a></span>
+                </div>
+                <div class="field">
+                  <span class="label">Age:</span>
+                  <span class="value">${studentData.age} years</span>
+                </div>
+                <div class="field">
+                  <span class="label">Gender:</span>
+                  <span class="value">${studentData.gender}</span>
+                </div>
+
+                <div style="background-color: #FFE6CC; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #FF6A00;">
+                  <p style="margin: 0; color: #333;"><strong>Status:</strong> Student registration has been submitted and is pending approval.</p>
+                </div>
+              </div>
+
+              <div class="footer">
+                <p>VR Robotics Academy - Student Registration System</p>
+                <p>This is an automated email. Please do not reply directly to this address.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const payload: EmailPayload = {
+        to: this.ADMIN_EMAIL,
+        subject: `✨ New Student Registration: ${studentData.fullName}`,
+        html: htmlContent,
+      };
+
+      console.log('[EmailService] Sending student registration email to admin:', this.ADMIN_EMAIL);
+      return this.simulateEmailSend(payload);
+    } catch (error) {
+      console.error('[EmailService] Error sending student registration email:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send student registration email',
+      };
+    }
+  }
+
+  /**
+   * Helper function to format time slot display
+   */
+  private static formatTimeSlot(timeSlot: string): string {
+    const timeSlots: { [key: string]: string } = {
+      'morning': '9:00 AM - 12:00 PM',
+      'afternoon': '12:00 PM - 3:00 PM',
+      'evening': '3:00 PM - 6:00 PM'
+    };
+    return timeSlots[timeSlot] || timeSlot;
+  }
+}
+
+export { EmailService };
