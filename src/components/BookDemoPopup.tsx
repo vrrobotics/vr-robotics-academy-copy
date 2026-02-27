@@ -5,12 +5,14 @@ import { Rocket, CheckCircle } from 'lucide-react';
 import { trackEvent } from '@/components/AnalyticsTracker';
 import RazorpayService from '@/services/razorpayService';
 import PaymentWorkflowService from '@/services/paymentWorkflowService';
+import { getLocalizedDemoPriceLabel } from '@/lib/demoPrice';
 
 export default function BookDemoPopup() {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const demoPriceLabel = getLocalizedDemoPriceLabel();
 
   // Show popup when user scrolls to middle of page
   useEffect(() => {
@@ -119,7 +121,7 @@ export default function BookDemoPopup() {
               </h3>
               
               <div className="mb-3">
-                <p className="font-heading text-3xl text-secondary mb-1">$1</p>
+                <p className="font-heading text-3xl text-secondary mb-1">{demoPriceLabel}</p>
                 <p className="font-paragraph text-sm text-foreground/80">
                   Limited Time Demo Class Offer!
                 </p>
@@ -132,7 +134,7 @@ export default function BookDemoPopup() {
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-left">
                   <CheckCircle className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span className="font-paragraph text-sm text-foreground/90">60-minute interactive demo - Only $1</span>
+                  <span className="font-paragraph text-sm text-foreground/90">60-minute interactive demo - Only {demoPriceLabel}</span>
                 </div>
                 <div className="flex items-center gap-2 text-left">
                   <CheckCircle className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -154,7 +156,7 @@ export default function BookDemoPopup() {
                 onClick={handlePaymentClick}
                 disabled={isProcessing}
               >
-                {isProcessing ? 'Processing...' : 'Book Demo Now - $1'}
+                {isProcessing ? 'Processing...' : `Book Demo Now - ${demoPriceLabel}`}
               </motion.button>
 
               <button

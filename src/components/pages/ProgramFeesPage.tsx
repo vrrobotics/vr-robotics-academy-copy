@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { ProgramFees } from '@/entities';
 import { Check, Star } from 'lucide-react';
@@ -8,6 +9,7 @@ import Footer from '@/components/Footer';
 import BookDemoButton from '@/components/BookDemoButton';
 
 export default function ProgramFeesPage() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<ProgramFees[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingMode, setBillingMode] = useState<'session' | 'month'>('session');
@@ -433,7 +435,7 @@ export default function ProgramFeesPage() {
                 className="bg-transparent text-secondary border-2 border-secondary font-heading font-semibold px-8 py-4 rounded-lg"
                 whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 211, 158, 0.1)' }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/contact'}
+                onClick={() => navigate('/contact')}
               >
                 Contact Us
               </motion.button>

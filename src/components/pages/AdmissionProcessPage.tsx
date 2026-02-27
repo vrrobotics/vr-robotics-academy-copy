@@ -4,132 +4,11 @@ import { Image } from '@/components/ui/image';
 import { ArrowRight, CheckCircle, Clock, Users, BookOpen, Trophy, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getFallbackImage, getTertiaryFallbackImage } from '@/services/imageGenerationService';
 import RazorpayService from '@/services/razorpayService';
-
-// Professional SVG Illustrations for each step
-const ApplicationIllustration = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full">
-    <rect width="400" height="400" fill="rgba(216, 255, 145, 0.05)" rx="20" />
-    {/* Form Document */}
-    <rect x="80" y="60" width="240" height="280" fill="white" opacity="0.9" rx="10" />
-    {/* Form Lines */}
-    <rect x="100" y="90" width="80" height="12" fill="#d8ff91" opacity="0.6" rx="4" />
-    <rect x="100" y="120" width="160" height="8" fill="#ddd" opacity="0.5" rx="4" />
-    <rect x="100" y="140" width="160" height="8" fill="#ddd" opacity="0.5" rx="4" />
-    <rect x="100" y="160" width="160" height="8" fill="#ddd" opacity="0.5" rx="4" />
-    <rect x="100" y="190" width="160" height="8" fill="#ddd" opacity="0.5" rx="4" />
-    <rect x="100" y="210" width="160" height="8" fill="#ddd" opacity="0.5" rx="4" />
-    {/* Button */}
-    <rect x="130" y="260" width="140" height="40" fill="#d8ff91" rx="6" />
-    <text x="200" y="287" fontSize="14" fontWeight="bold" textAnchor="middle" fill="#333">SUBMIT</text>
-    {/* Checkmark */}
-    <circle cx="320" cy="80" r="30" fill="#4ade80" opacity="0.9" />
-    <path d="M 310 82 L 318 90 L 330 76" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const DemoIllustration = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full">
-    <rect width="400" height="400" fill="rgba(216, 255, 145, 0.05)" rx="20" />
-    {/* VR Headset */}
-    <ellipse cx="200" cy="120" rx="80" ry="70" fill="none" stroke="#d8ff91" strokeWidth="4" />
-    {/* Left Eye */}
-    <circle cx="160" cy="110" r="30" fill="none" stroke="#d8ff91" strokeWidth="3" />
-    <circle cx="160" cy="110" r="15" fill="#4a5568" opacity="0.8" />
-    {/* Right Eye */}
-    <circle cx="240" cy="110" r="30" fill="none" stroke="#d8ff91" strokeWidth="3" />
-    <circle cx="240" cy="110" r="15" fill="#4a5568" opacity="0.8" />
-    {/* Top Band */}
-    <rect x="130" y="50" width="140" height="20" fill="#d8ff91" opacity="0.7" rx="10" />
-    {/* Virtual World - circles representing VR experience */}
-    <circle cx="200" cy="240" r="40" fill="none" stroke="#d8ff91" strokeWidth="2" opacity="0.6" />
-    <circle cx="200" cy="240" r="60" fill="none" stroke="#d8ff91" strokeWidth="1" opacity="0.4" />
-    <circle cx="200" cy="240" r="80" fill="none" stroke="#d8ff91" strokeWidth="1" opacity="0.2" />
-    {/* Star - representing technology */}
-    <path d="M 200 200 L 205 215 L 220 215 L 210 225 L 215 240 L 200 230 L 185 240 L 190 225 L 180 215 L 195 215 Z" fill="#d8ff91" opacity="0.8" />
-  </svg>
-);
-
-const AssessmentIllustration = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full">
-    <rect width="400" height="400" fill="rgba(216, 255, 145, 0.05)" rx="20" />
-    {/* Clipboard */}
-    <rect x="100" y="80" width="200" height="240" fill="white" opacity="0.9" rx="10" />
-    <rect x="100" y="50" width="70" height="40" fill="#d8ff91" rx="6" />
-    {/* Clip */}
-    <circle cx="115" cy="70" r="8" fill="#666" />
-    {/* Checkmarks */}
-    <g transform="translate(0, 0)">
-      <path d="M 130 120 L 140 130 L 155 110" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M 130 160 L 140 170 L 155 150" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M 130 200 L 140 210 L 155 190" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M 130 240 L 140 250 L 155 230" stroke="#4ade80" strokeWidth="3" fill="none" strokeLinecap="round" />
-    </g>
-    {/* Text lines */}
-    <rect x="170" y="125" width="110" height="6" fill="#ddd" opacity="0.5" rx="3" />
-    <rect x="170" y="165" width="110" height="6" fill="#ddd" opacity="0.5" rx="3" />
-    <rect x="170" y="205" width="110" height="6" fill="#ddd" opacity="0.5" rx="3" />
-    <rect x="170" y="245" width="110" height="6" fill="#ddd" opacity="0.5" rx="3" />
-    {/* Stars (Rating) */}
-    <g transform="translate(200, 310)">
-      <path d="M 0 -8 L 2 -2 L 8 -1 L 3 3 L 5 9 L 0 6 L -5 9 L -3 3 L -8 -1 L -2 -2 Z" fill="#d8ff91" />
-      <path d="M 20 -8 L 22 -2 L 28 -1 L 23 3 L 25 9 L 20 6 L 15 9 L 17 3 L 12 -1 L 18 -2 Z" fill="#d8ff91" />
-      <path d="M 40 -8 L 42 -2 L 48 -1 L 43 3 L 45 9 L 40 6 L 35 9 L 37 3 L 32 -1 L 38 -2 Z" fill="#d8ff91" />
-    </g>
-  </svg>
-);
-
-const ProgramIllustration = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full">
-    <rect width="400" height="400" fill="rgba(216, 255, 145, 0.05)" rx="20" />
-    {/* Three Program Boxes */}
-    {/* Beginner Box */}
-    <rect x="50" y="100" width="90" height="180" fill="#3b82f6" opacity="0.8" rx="8" />
-    <text x="95" y="140" fontSize="14" fontWeight="bold" textAnchor="middle" fill="white">BEGINNER</text>
-    <text x="95" y="165" fontSize="11" textAnchor="middle" fill="white" opacity="0.8">Level 1</text>
-    {/* Intermediate Box */}
-    <rect x="155" y="60" width="90" height="220" fill="#d8ff91" opacity="0.8" rx="8" />
-    <text x="200" y="120" fontSize="14" fontWeight="bold" textAnchor="middle" fill="#333">INTERMEDIATE</text>
-    <text x="200" y="145" fontSize="11" textAnchor="middle" fill="#333" opacity="0.8">Level 2-3</text>
-    {/* Advanced Box */}
-    <rect x="260" y="100" width="90" height="180" fill="#ef4444" opacity="0.8" rx="8" />
-    <text x="305" y="140" fontSize="14" fontWeight="bold" textAnchor="middle" fill="white">ADVANCED</text>
-    <text x="305" y="165" fontSize="11" textAnchor="middle" fill="white" opacity="0.8">Level 4+</text>
-    {/* Arrow pointing to intermediate */}
-    <path d="M 200 320 L 200 300" stroke="#d8ff91" strokeWidth="3" fill="none" strokeLinecap="round" />
-    <path d="M 190 310 L 200 300 L 210 310" stroke="#d8ff91" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const WelcomeIllustration = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full">
-    <rect width="400" height="400" fill="rgba(216, 255, 145, 0.05)" rx="20" />
-    {/* Rocket */}
-    <path d="M 200 50 L 210 120 L 200 140 L 190 120 Z" fill="#d8ff91" />
-    {/* Rocket body */}
-    <rect x="185" y="140" width="30" height="100" fill="#ef4444" opacity="0.9" rx="5" />
-    {/* Rocket window */}
-    <circle cx="200" cy="160" r="8" fill="#4a5568" opacity="0.9" />
-    {/* Flames */}
-    <path d="M 190 240 L 185 280 L 200 260 L 215 280 L 210 240" fill="#f97316" opacity="0.8" />
-    <path d="M 192 250 L 188 275 L 200 265 L 212 275 L 208 250" fill="#fbbf24" opacity="0.7" />
-    {/* Stars around rocket */}
-    <g fill="#d8ff91">
-      <path d="M 80 100 L 85 108 L 93 108 L 87 113 L 89 121 L 80 116 L 71 121 L 73 113 L 67 108 L 75 108 Z" />
-      <path d="M 320 150 L 325 158 L 333 158 L 327 163 L 329 171 L 320 166 L 311 171 L 313 163 L 307 158 L 315 158 Z" />
-      <path d="M 100 280 L 105 288 L 113 288 L 107 293 L 109 301 L 100 296 L 91 301 L 93 293 L 87 288 L 95 288 Z" />
-      <path d="M 300 280 L 305 288 L 313 288 L 307 293 L 309 301 L 300 296 L 291 301 L 293 293 L 287 288 L 295 288 Z" />
-    </g>
-    {/* Success text indicator */}
-    <circle cx="200" cy="340" r="25" fill="#4ade80" opacity="0.8" />
-    <path d="M 190 340 L 198 348 L 210 330" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+import { generateImageUrl, getFallbackImage, getTertiaryFallbackImage } from '@/services/imageGenerationService';
 
 export default function AdmissionProcessPage() {
   const navigate = useNavigate();
-
   const handleBookDemoPayment = async () => {
     try {
       await RazorpayService.initiateDemo1DollarPayment(
@@ -144,42 +23,57 @@ export default function AdmissionProcessPage() {
       console.error('Error initiating demo payment:', error);
     }
   };
-  // Admission steps with SVG illustrations
+  // Admission steps with professional AI-generated image sets
   const steps = [
     {
       stepNumber: 1 as const,
       title: 'Online Application',
       description: 'Fill out our quick online form with basic information about your child - their interests, age, and goals. It takes just 5 minutes!',
-      icon: '📝',
-      illustration: <ApplicationIllustration />
+      icon: '01',
+      image: generateImageUrl(1),
+      fallbackImage: getFallbackImage(1),
+      tertiaryImage: getTertiaryFallbackImage(1),
+      imageAlt: 'Student and parent completing robotics academy online application'
     },
     {
       stepNumber: 2 as const,
       title: 'Demo Session',
       description: 'Schedule a 30-minute demo where your child can experience our VR robotics platform, meet our instructors, and ask questions.',
-      icon: '🎮',
-      illustration: <DemoIllustration />
+      icon: '02',
+      image: generateImageUrl(2),
+      fallbackImage: getFallbackImage(2),
+      tertiaryImage: getTertiaryFallbackImage(2),
+      imageAlt: 'Student in VR robotics demo session with instructor'
     },
     {
       stepNumber: 3 as const,
       title: 'Assessment & Feedback',
       description: 'After the demo, we provide personalized feedback and recommend the best learning path for your child based on their skill level.',
-      icon: '⭐',
-      illustration: <AssessmentIllustration />
+      icon: '03',
+      image: generateImageUrl(3),
+      fallbackImage: getFallbackImage(3),
+      tertiaryImage: getTertiaryFallbackImage(3),
+      imageAlt: 'Instructor giving robotics assessment and personalized feedback'
     },
     {
       stepNumber: 4 as const,
       title: 'Choose Your Program',
       description: 'Select from our flexible plans - beginner, intermediate, or advanced. Start immediately in the next batch or your preferred schedule.',
-      icon: '🎯',
-      illustration: <ProgramIllustration />
+      icon: '04',
+      image: generateImageUrl(4),
+      fallbackImage: getFallbackImage(4),
+      tertiaryImage: getTertiaryFallbackImage(4),
+      imageAlt: 'Robotics program selection with beginner intermediate and advanced tracks'
     },
     {
       stepNumber: 5 as const,
       title: 'Welcome to VR Robotics!',
       description: 'Get access to our platform, instructors, learning materials, and community. Your child begins their journey to becoming a tech innovator!',
-      icon: '🚀',
-      illustration: <WelcomeIllustration />
+      icon: '05',
+      image: generateImageUrl(5),
+      fallbackImage: getFallbackImage(5),
+      tertiaryImage: getTertiaryFallbackImage(5),
+      imageAlt: 'Students welcomed into VR robotics learning platform'
     }
   ];
 
@@ -273,36 +167,26 @@ export default function AdmissionProcessPage() {
                     )}
                   </div>
 
-                  {/* Icon/Visual - SVG Illustration */}
-                  <div className={`relative ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
+                  {/* Image Visual - AI Generated */}
+                  <div className={`relative w-full max-w-[640px] mx-auto ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
                     <motion.div 
-                      className="relative aspect-square rounded-3xl overflow-hidden flex items-center justify-center group"
+                      className="relative rounded-2xl overflow-hidden group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(216, 255, 145, 0.08), rgba(255, 211, 158, 0.05))',
-                        border: '1px solid rgba(216, 255, 145, 0.3)',
-                        backdropFilter: 'blur(10px)'
+                        border: '1px solid rgba(216, 255, 145, 0.3)'
                       }}
                       whileHover={{ scale: 1.08, boxShadow: '0 0 40px rgba(216, 255, 145, 0.5)' }}
                       transition={{ type: 'spring', stiffness: 300, damping: 10 }}
                     >
                       <motion.div
-                        className="w-full h-full p-8"
+                        className="w-full h-full p-0"
                         whileHover={{ scale: 1.05 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 10 }}
                       >
-                        {step.illustration}
+                        <Image src={step.image} fallback={step.fallbackImage} tertiaryFallback={step.tertiaryImage} alt={step.imageAlt} className="block w-full h-auto object-contain" loading="lazy" referrerPolicy="no-referrer" />
                       </motion.div>
                       {/* Glow overlay */}
                       <div className="absolute inset-0 opacity-0 hover:opacity-20 transition-opacity bg-gradient-to-br from-primary via-transparent to-secondary pointer-events-none rounded-3xl" />
                     </motion.div>
-                    
-                    {/* Animated floating particles around image */}
-                    <motion.div
-                      className="absolute -inset-4 rounded-3xl border border-primary/20"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                      style={{ pointerEvents: 'none' }}
-                    />
                   </div>
                 </div>
 
@@ -591,3 +475,4 @@ export default function AdmissionProcessPage() {
     </>
   );
 }
+

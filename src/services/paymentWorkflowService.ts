@@ -44,7 +44,7 @@ export class PaymentWorkflowService {
         id: crypto.randomUUID(),
         paymentId,
         amount,
-        currency: 'INR',
+        currency: 'USD_EQUIVALENT',
         status: 'completed',
         createdAt: new Date().toISOString()
       };
@@ -87,7 +87,7 @@ export class PaymentWorkflowService {
       console.log('[PaymentWorkflow] Starting post-payment workflow for:', paymentId);
 
       // Step 1: Record the payment
-      const paymentResult = await this.recordPayment(paymentId, 100); // $1 = 100 paise
+      const paymentResult = await this.recordPayment(paymentId, 100); // $1 base amount in cents
 
       // Step 2: Update Google Sheets with payment information
       let sheetsUpdated = false;

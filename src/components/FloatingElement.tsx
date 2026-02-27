@@ -32,7 +32,7 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
         ease: 'easeInOut',
         delay,
       }}
-      className={className}
+      className={`pointer-events-auto ${className}`}
     >
       {children}
     </motion.div>

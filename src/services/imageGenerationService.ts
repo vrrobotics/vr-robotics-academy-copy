@@ -46,19 +46,19 @@ export const admissionStepPrompts = {
 export const generateImageUrl = (stepNumber: 1 | 2 | 3 | 4 | 5): string => {
   const imageMap: Record<number, string> = {
     // Step 1: Online Application
-    1: 'https://images.unsplash.com/photo-1667372335957-b8d1b5eb60e3?w=500&h=500&fit=crop&q=80&auto=format',
-    
-    // Step 2: Demo Session - VR/Gaming focused
-    2: 'https://images.unsplash.com/photo-1633356122544-f134324ef6db?w=500&h=500&fit=crop&q=80&auto=format',
-    
+    1: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1772218716/ChatGPT_Image_Feb_28_2026_12_14_42_AM_eudnuh.png',
+
+    // Step 2: Demo Session
+    2: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1772218715/31ebc336-aaf1-49ab-92c2-72e62fae4771_ng8ab7.png',
+
     // Step 3: Assessment & Feedback
-    3: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=500&h=500&fit=crop&q=80&auto=format',
-    
-    // Step 4: Choose Your Program - Decision/Selection
-    4: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=500&fit=crop&q=80&auto=format',
-    
-    // Step 5: Welcome to VR Robotics - Team/Collaboration
-    5: 'https://images.unsplash.com/photo-1552392081-5967b4550f26?w=500&h=500&fit=crop&q=80&auto=format'
+    3: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1772218760/aa440849-4faa-409e-8776-05d6f99e795d_x02zh6.png',
+
+    // Step 4: Choose Your Program
+    4: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1772218717/5417b775-4a14-4bd9-a0d5-a0ab94867a8f_ywttsu.png',
+
+    // Step 5: Welcome to VR Robotics
+    5: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1772218710/123c95ec-fd3b-4d62-b9c9-bbf79b9d0b6a_u8woel.png'
   };
 
   return imageMap[stepNumber] || 'https://via.placeholder.com/500x500?text=Step+' + stepNumber;
@@ -69,20 +69,11 @@ export const generateImageUrl = (stepNumber: 1 | 2 | 3 | 4 | 5): string => {
  */
 export const getFallbackImage = (stepNumber: 1 | 2 | 3 | 4 | 5): string => {
   const fallbackMap: Record<number, string> = {
-    // Online Application - Form/Signup
-    1: 'https://images.unsplash.com/photo-1460925895917-adf4e565db6d?w=500&h=500&fit=crop&q=80',
-    
-    // VR Demo Session - Virtual Reality/Gaming
-    2: 'https://images.unsplash.com/photo-1612036782180-69c73116e76f?w=500&h=500&fit=crop&q=80',
-    
-    // Assessment & Feedback - Learning/Education
-    3: 'https://images.unsplash.com/photo-1552664730-8c81589609f9?w=500&h=500&fit=crop&q=80',
-    
-    // Choose Program - Options/Selection
-    4: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&h=500&fit=crop&q=80',
-    
-    // Team Success - Collaboration/Achievement
-    5: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=500&fit=crop&q=80'
+    1: 'https://images.pexels.com/photos/7868889/pexels-photo-7868889.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    2: 'https://images.pexels.com/photos/7868888/pexels-photo-7868888.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    3: 'https://images.pexels.com/photos/7869085/pexels-photo-7869085.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    4: 'https://images.pexels.com/photos/7868883/pexels-photo-7868883.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    5: 'https://images.pexels.com/photos/7868882/pexels-photo-7868882.jpeg?auto=compress&cs=tinysrgb&w=1200'
   };
 
   return fallbackMap[stepNumber] || 'https://via.placeholder.com/500x500?text=Learning+Image';
@@ -93,11 +84,11 @@ export const getFallbackImage = (stepNumber: 1 | 2 | 3 | 4 | 5): string => {
  */
 export const getTertiaryFallbackImage = (stepNumber: 1 | 2 | 3 | 4 | 5): string => {
   const tertiaryMap: Record<number, string> = {
-    1: 'https://via.placeholder.com/500x500/4f46e5/ffffff?text=Application+Form',
-    2: 'https://via.placeholder.com/500x500/d946ef/ffffff?text=VR+Demo+Session',
-    3: 'https://via.placeholder.com/500x500/0ea5e9/ffffff?text=Feedback+%26+Assessment',
-    4: 'https://via.placeholder.com/500x500/f59e0b/ffffff?text=Choose+Program',
-    5: 'https://via.placeholder.com/500x500/10b981/ffffff?text=Welcome+to+VR+Robotics'
+    1: 'https://images.pexels.com/photos/7868894/pexels-photo-7868894.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    2: 'https://images.pexels.com/photos/7869239/pexels-photo-7869239.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    3: 'https://images.pexels.com/photos/7868886/pexels-photo-7868886.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    4: 'https://images.pexels.com/photos/7869086/pexels-photo-7869086.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    5: 'https://images.pexels.com/photos/7868889/pexels-photo-7868889.jpeg?auto=compress&cs=tinysrgb&w=1200'
   };
 
   return tertiaryMap[stepNumber] || 'https://via.placeholder.com/500x500?text=Learning';

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { Lightbulb, Bot, Code, Glasses, Puzzle, Gamepad2 } from 'lucide-react';
 import Header from '@/components/Header';
@@ -6,6 +7,7 @@ import Footer from '@/components/Footer';
 import BookDemoPopup from '@/components/BookDemoPopup';
 
 export default function WhatKidsLearnPage() {
+  const navigate = useNavigate();
   return (
     <>
       <Header />
@@ -374,49 +376,6 @@ export default function WhatKidsLearnPage() {
                 </ul>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative py-24 px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="p-16 rounded-3xl text-center"
-            style={{
-              background: 'linear-gradient(135deg, rgba(216, 255, 145, 0.1), rgba(255, 211, 158, 0.1))',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            <motion.h2
-              className="font-heading text-4xl lg:text-5xl mb-6 text-foreground"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              Ready to Start Learning?
-            </motion.h2>
-            <motion.p
-              className="font-paragraph text-xl text-foreground/80 mb-8 max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              Explore our comprehensive curriculum and see how we bring these skills to life!
-            </motion.p>
-            <motion.button
-              className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-[10px]"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => window.location.href = '/curriculum'}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
-              View Curriculum
-            </motion.button>
           </div>
         </div>
       </section>

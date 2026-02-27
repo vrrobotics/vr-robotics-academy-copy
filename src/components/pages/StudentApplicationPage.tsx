@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function StudentApplicationPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     age: '',
@@ -76,7 +78,7 @@ export default function StudentApplicationPage() {
 
       // Redirect after 3 seconds
       setTimeout(() => {
-        window.location.href = '/admission-process';
+        navigate('/admission-process');
       }, 3000);
     } catch (err) {
       console.error('Application submit failed:', err);

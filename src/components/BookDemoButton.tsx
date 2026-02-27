@@ -21,6 +21,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RazorpayService from '@/services/razorpayService';
 import PaymentWorkflowService from '@/services/paymentWorkflowService';
+import { getLocalizedDemoPriceLabel } from '@/lib/demoPrice';
 
 interface BookDemoButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
@@ -38,7 +39,7 @@ export default function BookDemoButton({
   variant = 'primary',
   size = 'md',
   className = '',
-  children = 'Book Demo Now - $1',
+  children,
   onSuccess,
   onError,
   source = 'book_demo_button',
@@ -47,6 +48,8 @@ export default function BookDemoButton({
 }: BookDemoButtonProps) {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const demoPriceLabel = getLocalizedDemoPriceLabel();
+  const buttonLabel = children ?? `Book Demo Now - ${demoPriceLabel}`;
 
   const variantStyles = {
     primary: 'bg-primary text-primary-foreground',
@@ -120,7 +123,7 @@ export default function BookDemoButton({
       onClick={handleClick}
       disabled={isProcessing || disabled}
     >
-      {isProcessing ? 'Processing Payment...' : children}
+      {isProcessing ? 'Processing Payment...' : buttonLabel}
     </motion.button>
   );
 }

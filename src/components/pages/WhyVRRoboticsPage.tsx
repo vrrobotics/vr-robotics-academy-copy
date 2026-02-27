@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { Brain, Trophy, Users, Sparkles, Globe, Rocket } from 'lucide-react';
 import Header from '@/components/Header';
@@ -7,6 +8,7 @@ import BookDemoPopup from '@/components/BookDemoPopup';
 import RazorpayService from '@/services/razorpayService';
 
 export default function WhyVRRoboticsPage() {
+  const navigate = useNavigate();
   const handleBookDemoPayment = async () => {
     try {
       await RazorpayService.initiateDemo1DollarPayment(
@@ -290,13 +292,13 @@ export default function WhyVRRoboticsPage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleBookDemoPayment}
               >
-                Book Free Demo
+                Book Demo
               </motion.button>
               <motion.button
                 className="bg-transparent text-secondary border-2 border-secondary font-heading font-semibold px-8 py-4 rounded-[10px]"
                 whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 211, 158, 0.1)' }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/program-fees'}
+                onClick={() => navigate('/program-fees')}
               >
                 View Pricing
               </motion.button>

@@ -19,6 +19,7 @@ import EnrollmentOnboardingPopup from '@/components/EnrollmentOnboardingPopup';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import RazorpayService from '@/services/razorpayService';
+import { getLocalizedDemoPriceLabel } from '@/lib/demoPrice';
 
 type AnimatedElementProps = {
   children: React.ReactNode;
@@ -81,6 +82,7 @@ if (typeof window !== 'undefined') {
 }
 
 export default function HomePage() {
+  const demoPriceLabel = getLocalizedDemoPriceLabel();
   const [prefersReducedMotion] = useState(() => 
     typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
   );
@@ -92,6 +94,9 @@ export default function HomePage() {
   const [showScrollPopup, setShowScrollPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [isLargeScreen, setIsLargeScreen] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  );
 
   const handleImageError = (moduleName: string, imageUrl: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
@@ -126,6 +131,16 @@ export default function HomePage() {
   // Fetch featured courses on mount
   useEffect(() => {
     fetchFeaturedCourses();
+  }, []);
+
+  // Handle window resize for responsive robot layer
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Show popup when user scrolls to middle of page
@@ -284,7 +299,7 @@ export default function HomePage() {
                 </h3>
                 
                 <div className="mb-3">
-                  <p className="font-heading text-4xl text-secondary mb-1">$1</p>
+                  <p className="font-heading text-4xl text-secondary mb-1">{demoPriceLabel}</p>
                   <p className="font-paragraph text-sm text-foreground/80">
                     Limited Time Demo Class Offer!
                   </p>
@@ -297,7 +312,7 @@ export default function HomePage() {
                 <div className="space-y-2 mb-5">
                   <div className="flex items-center gap-2 text-left">
                     <CheckCircle className="w-4 h-4 text-secondary flex-shrink-0" />
-                    <span className="font-paragraph text-xs text-foreground/90">60-minute interactive demo - Only $1</span>
+                    <span className="font-paragraph text-xs text-foreground/90">60-minute interactive demo - Only {demoPriceLabel}</span>
                   </div>
                   <div className="flex items-center gap-2 text-left">
                     <CheckCircle className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -319,7 +334,7 @@ export default function HomePage() {
                       trackEvent('Popup Demo Booking Click', { source: 'timed_popup' });
                     }}
                   >
-                    Book Demo Now - $1
+                    {`Book Demo Now - ${demoPriceLabel}`}
                   </motion.button>
 
                 <button
@@ -356,6 +371,11 @@ export default function HomePage() {
         .glass-pane:hover {
           background: rgba(255, 140, 66, 0.1);
           border-color: rgba(255, 140, 66, 0.4);
+        }
+        .glass-pane.no-hover:hover {
+          background: rgba(255, 140, 66, 0.05);
+          border-color: rgba(255, 140, 66, 0.2);
+          transform: none;
         }
         .neon-glow-primary {
           box-shadow: 0 0 20px rgba(255, 140, 66, 0.4), 0 0 40px rgba(255, 140, 66, 0.2);
@@ -498,13 +518,14 @@ export default function HomePage() {
             transition={{ duration: 1.2, ease: "easeOut" }}
           >
             <div className="w-full max-w-[100rem] mx-auto relative min-h-screen lg:min-h-[700px]">
-              {/* Robot Layer - Front (Top Layer) */}
-              <motion.div
-                className="absolute right-0 top-0 w-full lg:w-1/2 h-full flex items-center justify-center z-20"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-              >
+              {/* Robot/Glow Layer - Large screens only */}
+              {isLargeScreen && (
+                <motion.div
+                  className="absolute right-0 top-0 w-full lg:w-1/2 h-full flex items-center justify-center z-20 pointer-events-none"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                >
                 {/* Outer Rotating Liquid Glow - Full Screen */}
                 <motion.div
                   className="absolute inset-0 flex items-center justify-center -z-10"
@@ -601,42 +622,52 @@ export default function HomePage() {
                   />
                 </motion.div>
 
-                {/* Center Bright Liquid Glow - Full Screen */}
-                <motion.div
-                  className="absolute inset-0 flex items-center justify-center -z-10"
-                  animate={{
-                    opacity: [0.4, 0.65, 0.4],
-                    scale: [0.95, 1.08, 0.95],
-                  }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <div 
-                    className="absolute blur-3xl"
-                    style={{
-                      width: '750px',
-                      height: '750px',
-                      background: 'radial-gradient(ellipse 50% 60% at 50% 45%, rgba(255, 179, 102, 0.7), transparent 50%)',
-                      filter: 'blur(45px)',
-                    }}
-                  />
-                </motion.div>
+                  {isLargeScreen && (
+                    <>
+                      {/* Center Bright Liquid Glow - Full Screen */}
+                      <motion.div
+                        className="absolute inset-0 flex items-center justify-center -z-10"
+                        animate={{
+                          opacity: [0.4, 0.65, 0.4],
+                          scale: [0.95, 1.08, 0.95],
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <div 
+                          className="absolute blur-3xl"
+                          style={{
+                            width: '750px',
+                            height: '750px',
+                            background: 'radial-gradient(ellipse 50% 60% at 50% 45%, rgba(255, 179, 102, 0.7), transparent 50%)',
+                            filter: 'blur(45px)',
+                          }}
+                        />
+                      </motion.div>
+                    </>
+                  )}
 
-                <spline-viewer 
-                  url="https://prod.spline.design/FNanjG-W99jZaCiJ/scene.splinecode"
-                  style={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '20px',
-                    transform: 'scale(1.5)',
-                    zIndex: 10,
-                  }}
-                />
-              </motion.div>
+                  {isLargeScreen && (
+                    <div className="absolute inset-0 w-full h-full">
+                      <spline-viewer 
+                        url="https://prod.spline.design/FNanjG-W99jZaCiJ/scene.splinecode"
+                        style={{
+                          position: 'absolute',
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '20px',
+                          transform: 'scale(1.5)',
+                          zIndex: 10,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              )}
 
               {/* Text Layer - Background (Bottom Layer) */}
               <div className="absolute left-0 top-0 w-full lg:w-full h-full flex items-center justify-start z-10">
@@ -686,8 +717,14 @@ export default function HomePage() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 sm:mb-12 md:mb-16">
                     <FloatingElement duration={3} distance={15}>
                       <motion.button
-                        onClick={handleBookDemoPayment}
-                        className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-[10px] neon-glow-primary text-base sm:text-lg w-full sm:w-auto"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleBookDemoPayment();
+                        }}
+                        className="bg-primary text-primary-foreground font-heading font-semibold px-8 py-4 rounded-[10px] neon-glow-primary text-base sm:text-lg w-full sm:w-auto cursor-pointer pointer-events-auto"
+                        style={{ pointerEvents: 'auto' }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -700,6 +737,26 @@ export default function HomePage() {
             </div>
           </motion.section>
         </div>
+
+        {/* Mobile/Tablet Video Insert (below 1024px) */}
+        {!isLargeScreen && (
+          <section className="relative z-10 bg-background pb-12 sm:pb-16 overflow-hidden">
+            <div className="max-w-[100rem] mx-auto">
+              <div className="relative w-full">
+                <video
+                  src="https://res.cloudinary.com/dicfqwlfq/video/upload/v1772204629/Recording_2026-02-27_203147_mf6dwh.mp4"
+                  className="w-full h-[38vh] sm:h-[46vh] object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-background/90" />
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Why Choose Us Section - Features Section - Black Background */}
         <section className="relative z-10 py-16 sm:py-24 md:py-40 bg-background overflow-hidden">
@@ -719,8 +776,7 @@ export default function HomePage() {
               {highlights.map((highlight, index) => (
                 <PremiumScrollAnimation key={index} variant="fadeInUp" delay={index * 0.1}>
                   <motion.div
-                    className="glass-pane p-6 sm:p-8 rounded-2xl h-full flex flex-col"
-                    whileHover={{ y: -8, borderColor: 'rgba(255, 140, 66, 0.5)' }}
+                    className="glass-pane no-hover p-6 sm:p-8 rounded-2xl h-full flex flex-col"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -728,7 +784,6 @@ export default function HomePage() {
                   >
                     <motion.div 
                       className="p-4 rounded-xl bg-primary/10 border border-primary/20 w-fit mb-6"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
                     >
@@ -812,8 +867,14 @@ export default function HomePage() {
 
             <div className="text-center px-4">
               <motion.button
-                onClick={handleBookDemoPayment}
-                className="bg-secondary text-secondary-foreground font-heading font-semibold px-8 sm:px-10 py-4 rounded-lg neon-glow-secondary text-base sm:text-lg w-full sm:w-auto"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBookDemoPayment();
+                }}
+                className="bg-secondary text-secondary-foreground font-heading font-semibold px-8 sm:px-10 py-4 rounded-lg neon-glow-secondary text-base sm:text-lg w-full sm:w-auto cursor-pointer pointer-events-auto"
+                style={{ pointerEvents: 'auto' }}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
