@@ -510,14 +510,20 @@ export default function HomePage() {
       `}</style>
       <div ref={scrollRef} className="relative w-full overflow-x-hidden">
         {/* Hero Section - Two Column Layout: Text Left, Robot Right */}
-        <div className="relative w-full min-h-screen bg-gradient-to-b from-background via-background/95 to-background pb-12 sm:pb-16">
+        <div
+          className={`relative w-full bg-gradient-to-b from-background via-background/95 to-background ${
+            isLargeScreen ? 'min-h-screen pb-12 sm:pb-16' : 'pb-2'
+          }`}
+        >
           <motion.section 
-            className="relative min-h-screen flex items-center justify-center z-10 px-6 sm:px-8 md:px-12 pt-24 sm:pt-28 md:pt-32"
+            className={`relative flex items-center justify-center z-10 px-6 sm:px-8 md:px-12 ${
+              isLargeScreen ? 'min-h-screen pt-24 sm:pt-28 md:pt-32' : 'pt-16 sm:pt-20 pb-2'
+            }`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
           >
-            <div className="w-full max-w-[100rem] mx-auto relative min-h-screen lg:min-h-[700px]">
+            <div className={`w-full max-w-[100rem] mx-auto relative ${isLargeScreen ? 'min-h-screen lg:min-h-[700px]' : ''}`}>
               {/* Robot/Glow Layer - Large screens only */}
               {isLargeScreen && (
                 <motion.div
@@ -670,8 +676,8 @@ export default function HomePage() {
               )}
 
               {/* Text Layer - Background (Bottom Layer) */}
-              <div className="absolute left-0 top-0 w-full lg:w-full h-full flex items-center justify-start z-10">
-                <div className="relative z-10 w-full lg:w-1/2 text-center lg:text-left px-6 sm:px-8 md:px-12 py-20">
+              <div className={`${isLargeScreen ? 'absolute left-0 top-0 w-full lg:w-full h-full' : 'relative w-full'} flex items-center justify-start z-10`}>
+                <div className="relative z-10 w-full lg:w-1/2 text-center lg:text-left px-6 sm:px-8 md:px-12 py-12 sm:py-16 md:py-20">
                   {/* Badge - Subtle Fade Up */}
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -714,7 +720,7 @@ export default function HomePage() {
                     Structured courses, expert support, and hands-on learning for students and beginners.
                   </motion.p>
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 sm:mb-12 md:mb-16">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-2 sm:mb-6 md:mb-16">
                     <FloatingElement duration={3} distance={15}>
                       <motion.button
                         type="button"
@@ -740,7 +746,7 @@ export default function HomePage() {
 
         {/* Mobile/Tablet Video Insert (below 1024px) */}
         {!isLargeScreen && (
-          <section className="relative z-10 bg-background pb-12 sm:pb-16 overflow-hidden">
+          <section className="relative z-10 bg-background pb-8 sm:pb-12 overflow-hidden">
             <div className="max-w-[100rem] mx-auto">
               <div className="relative w-full">
                 <video
