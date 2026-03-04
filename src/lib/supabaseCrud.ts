@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 interface BaseRecord {
   _id: string;
@@ -16,21 +16,15 @@ export class SupabaseCrudService {
   static async create<T extends BaseRecord>(tableName: string, record: Partial<T>): Promise<T> {
     try {
       // Handle when Supabase is not configured (GitHub Pages static deployment)
-      if (!supabase) {
-        console.warn(`[SupabaseCrudService] Supabase not initialized - creating mock record for ${tableName}`);
-        return { ...record, _id: record._id || crypto.randomUUID() } as T;
+      if (!supabase || !isSupabaseConfigured) {
+        throw new Error("Supabase is not configured in this build.");
       }
 
       const dataToInsert: any = { ...record };
       
-      // Handle both naming conventions for timestamps
-      const now = new Date().toISOString();
-      if (!dataToInsert.created_at && !dataToInsert._createdDate) {
-        dataToInsert.created_at = now;
-      }
-      if (!dataToInsert.updated_at && !dataToInsert._updatedDate) {
-        dataToInsert.updated_at = now;
-      }
+      // Do not auto-inject timestamp fields because table schemas vary
+      // across environments (e.g. _createddate vs _createdDate vs created_at).
+      // Injecting unknown columns causes PostgREST insert failures.
 
       console.log(`[SupabaseCrudService] Inserting into ${tableName}:`, dataToInsert);
       
@@ -40,26 +34,12 @@ export class SupabaseCrudService {
         .select();
 
       if (error) {
-        // If it's a connection/fetch error and Supabase is on GitHub Pages, handle gracefully
         const errorMsg = `Supabase Error [${error.code}]: ${error.message}`;
-        console.warn(`[SupabaseCrudService] Could not create record in ${tableName}: ${errorMsg}`);
-        console.warn('[SupabaseCrudService] Continuing without database persistence (GitHub Pages static deployment)');
-        
-        // Return mock record so the form submission can continue with email/Google Sheets
-        return { ...record, _id: record._id || crypto.randomUUID() } as T;
+        throw new Error(`Could not create record in ${tableName}: ${errorMsg}`);
       }
       console.log(`[SupabaseCrudService] ✓ Successfully created record in ${tableName}:`, data[0]);
       return data[0] as T;
     } catch (err: any) {
-      // Handle network/fetch errors gracefully
-      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
-        console.warn(`[SupabaseCrudService] Network error - Supabase unavailable for ${tableName}`);
-        console.warn('[SupabaseCrudService] Continuing without database persistence');
-        // Return mock record with the provided data
-        const mockRecord = { ...record, _id: record._id || crypto.randomUUID() } as T;
-        return mockRecord;
-      }
-      
       console.error(`[SupabaseCrudService] Error in create operation for ${tableName}:`, err);
       throw err;
     }
@@ -73,7 +53,7 @@ export class SupabaseCrudService {
   static async getAll<T>(tableName: string): Promise<{ items: T[] }> {
     try {
       // Handle when Supabase is not configured (GitHub Pages static deployment)
-      if (!supabase) {
+      if (!supabase || !isSupabaseConfigured) {
         console.warn(`[SupabaseCrudService] Supabase not initialized - returning empty items for ${tableName}`);
         return { items: [] };
       }
@@ -100,6 +80,9 @@ export class SupabaseCrudService {
    * @returns The record if found, otherwise null.
    */
   static async getById<T extends BaseRecord>(tableName: string, id: string): Promise<T | null> {
+    if (!supabase || !isSupabaseConfigured) {
+      throw new Error("Supabase is not configured in this build.");
+    }
     const { data, error } = await supabase
       .from(tableName)
       .select("*")
@@ -122,6 +105,9 @@ export class SupabaseCrudService {
    * @returns The updated record.
    */
   static async update<T extends BaseRecord>(tableName: string, record: Partial<T>): Promise<T> {
+    if (!supabase || !isSupabaseConfigured) {
+      throw new Error("Supabase is not configured in this build.");
+    }
     if (!record._id) {
       throw new Error("Record must have an _id for updating.");
     }
@@ -129,7 +115,6 @@ export class SupabaseCrudService {
       .from(tableName)
       .update({
         ...record,
-        _updatedDate: new Date().toISOString(),
       })
       .eq("_id", record._id)
       .select();
@@ -146,6 +131,9 @@ export class SupabaseCrudService {
    * @param id The ID of the record to delete.
    */
   static async delete(tableName: string, id: string): Promise<void> {
+    if (!supabase || !isSupabaseConfigured) {
+      throw new Error("Supabase is not configured in this build.");
+    }
     const { error } = await supabase
       .from(tableName)
       .delete()

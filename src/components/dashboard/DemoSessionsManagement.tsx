@@ -35,13 +35,25 @@ export default function DemoSessionsManagement() {
 
       // Load demo sessions
       const { items: sessionsData = [] } = await BaseCrudService.getAll<DemoSessions>('demosessions');
+      const normalizedSessions = (sessionsData as any[]).map((session) => ({
+        ...session,
+        _id: session._id ?? session.id,
+        teacherId: session.teacherId ?? session.teacherid,
+        childName: session.childName ?? session.childname,
+        childAge: session.childAge ?? session.childage,
+        preferredDate: session.preferredDate ?? session.preferreddate,
+        preferredTime: session.preferredTime ?? session.preferredtime,
+        parentName: session.parentName ?? session.parentname,
+        parentEmail: session.parentEmail ?? session.parentemail,
+        parentPhone: session.parentPhone ?? session.parentphone
+      }));
       
       // Load teachers
       const teachersData = await RoleService.getAllTeachers();
       setTeachers(teachersData);
 
       // Enrich sessions with teacher names
-      const enrichedSessions = sessionsData.map(session => ({
+      const enrichedSessions = normalizedSessions.map(session => ({
         ...session,
         teacherName: teachersData.find(t => t._id === session.teacherId)?.fullName
       }));
@@ -126,9 +138,9 @@ export default function DemoSessionsManagement() {
 
     setIsAssigning(true);
     try {
-      await BaseCrudService.update<DemoSessions>('demosessions', {
+      await BaseCrudService.update<any>('demosessions', {
         _id: selectedSession._id,
-        teacherId: selectedTeacherId,
+        teacherid: selectedTeacherId,
         status: 'approved'
       });
       setShowAssignModal(false);

@@ -4,12 +4,15 @@
  */
 
 import { GoogleSheetsService } from '@/services/googleSheetsService';
+import { BaseCrudService } from '@/integrations';
 
 interface RazorpayOptions {
   amount: number; // Amount in minor units of `currency` (e.g. 100 cents = USD 1)
   currency?: string;
   description?: string;
   name?: string;
+  flowType?: 'demo' | 'session';
+  notes?: Record<string, string>;
   prefillEmail?: string;
   prefillPhone?: string;
   prefillName?: string;
@@ -29,6 +32,21 @@ export interface DemoBookingDetails {
   message?: string;
 }
 
+interface PlanPaymentOptions {
+  planName: string;
+  billingMode: 'session' | 'month';
+  amountUsd: number;
+  actionLabel?: string;
+  onSuccess?: (response: any) => void;
+  onError?: (error: any) => void;
+}
+
+interface DemoDetailsFormConfig {
+  title?: string;
+  subtitle?: string;
+  submitText?: string;
+}
+
 interface RazorpayOrderResponse {
   id: string;
   amount: number;
@@ -43,8 +61,14 @@ interface ClientRegionContext {
 export class RazorpayService {
   private static readonly KEY_ID =
     ((import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID as string) || 'rzp_test_SLEljQjEAaLhr7';
+  
+  // Dedicated session payment key (for pricing page sessions)
+  private static readonly SESSION_KEY_ID =
+    ((import.meta as any)?.env?.VITE_RAZORPAY_SESSION_KEY_ID as string) || 'rzp_test_SLEljQjEAaLhr7';
+  
   private static readonly SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
   private static readonly DEMO_DETAILS_STORAGE_KEY = 'vr_demo_booking_details';
+  private static readonly SESSION_DETAILS_STORAGE_KEY = 'vr_session_enrollment_details';
   private static readonly SHEETS_SYNC_KEY_PREFIX = 'vr_sheets_synced_';
 
   private static readonly PRODUCT_DESCRIPTION =
@@ -123,12 +147,50 @@ export class RazorpayService {
 
   private static async syncPaidBookingToGoogleSheets(paymentResponse: any): Promise<void> {
     const paymentId = paymentResponse?.razorpay_payment_id as string | undefined;
-    if (!paymentId) return;
-    if (this.hasPaymentBeenSyncedToSheets(paymentId)) return;
+    console.log('[Razorpay] syncPaidBookingToGoogleSheets called with paymentId:', paymentId);
+    if (!paymentId) {
+      console.warn('[Razorpay] No payment ID found in response');
+      return;
+    }
+    if (this.hasPaymentBeenSyncedToSheets(paymentId)) {
+      console.log('[Razorpay] Payment already synced to sheets:', paymentId);
+      return;
+    }
 
     const details = this.getStoredDemoBookingDetails();
+    const notes = paymentResponse?.razorpay_notes || this.getStoredPaymentNotes() || {};
+    console.log('[Razorpay] Retrieved notes:', notes);
+    console.log('[Razorpay] Is pricing enrollment?', notes.payment_type === 'session_enrollment');
 
     try {
+      // Check if this is a pricing enrollment by looking at payment notes
+      if (notes.payment_type === 'session_enrollment') {
+        console.log('[Razorpay] Routing to pricing enrollment sync');
+        return this.syncPricingEnrollmentToGoogleSheets(paymentResponse);
+      }
+
+      const shouldPersistDemo = notes.persist_demo_after_payment !== '0';
+      let bookingId = crypto.randomUUID();
+      if (shouldPersistDemo) {
+        // Persist paid demo booking to Supabase for all entry points
+        // (home page, popups, header button, etc.).
+        const demoRecord = {
+          _id: bookingId,
+          parentname: details.parentName || '',
+          parentemail: details.email || '',
+          parentphone: details.phone || '',
+          childname: details.childName || '',
+          childage: details.childAge ? parseInt(details.childAge, 10) : null,
+          preferreddate: details.preferredDate || '',
+          preferredtime: details.preferredTime || '',
+          interests: details.interests || '',
+          message: details.message || '',
+          status: 'pending'
+        };
+        await BaseCrudService.create('demosessions', demoRecord);
+        console.log('[Razorpay] Demo booking saved to Supabase:', demoRecord._id);
+      }
+
       const result = await GoogleSheetsService.appendDemoBooking({
         parentName: details.parentName || '',
         parentEmail: details.email || '',
@@ -139,7 +201,7 @@ export class RazorpayService {
         preferredTime: details.preferredTime || '',
         interests: details.interests || '',
         message: details.message || '',
-        bookingId: crypto.randomUUID(),
+        bookingId,
         paymentId,
         paymentStatus: 'paid'
       });
@@ -151,7 +213,91 @@ export class RazorpayService {
         console.warn('[Razorpay] Google Sheets sync failed:', result.error || result.message);
       }
     } catch (error) {
+      // For paid session enrollments, DB persistence is mandatory.
+      if (notes.payment_type === 'session_enrollment') {
+        throw error;
+      }
       console.warn('[Razorpay] Google Sheets sync error:', error);
+    }
+  }
+
+  private static async syncPricingEnrollmentToGoogleSheets(paymentResponse: any): Promise<void> {
+    const paymentId = paymentResponse?.razorpay_payment_id as string | undefined;
+    console.log('[Razorpay] syncPricingEnrollmentToGoogleSheets called:', paymentId);
+    if (!paymentId) {
+      console.warn('[Razorpay] No payment ID in pricing enrollment sync');
+      return;
+    }
+
+    const notes = paymentResponse?.razorpay_notes || this.getStoredPaymentNotes() || {};
+    const details = this.getStoredDemoBookingDetails();
+    console.log('[Razorpay] Pricing enrollment - notes:', notes);
+    console.log('[Razorpay] Pricing enrollment - details:', details);
+
+    try {
+      const enrollmentRecord = {
+        _id: crypto.randomUUID(),
+        paymentid: paymentId,
+        paymentstatus: 'paid',
+        studentname: details.childName || details.parentName || 'Unknown Student',
+        studentemail: details.email || 'unknown@example.com',
+        studentphone: details.phone || '',
+        planname: notes.plan_name || 'Unknown Plan',
+        billingmode: (notes.billing_mode as 'session' | 'month') || 'session',
+        amountusd: parseFloat(notes.amount_usd) || 0,
+        source: 'program_fees',
+        enrolledat: new Date().toISOString()
+      };
+
+      await BaseCrudService.create('sessionenrollments', enrollmentRecord);
+      console.log('[Razorpay] Session enrollment saved to Supabase:', enrollmentRecord._id);
+      console.log('[Razorpay] 🚀 Starting pricing enrollment sync to Google Sheets:', {
+        paymentId,
+        planName: notes.plan_name,
+        billingMode: notes.billing_mode,
+        studentName: details.childName || details.parentName,
+        studentEmail: details.email
+      });
+
+      const result = await GoogleSheetsService.appendPricingEnrollment({
+        studentName: details.childName || details.parentName || 'Unknown Student',
+        studentEmail: details.email || 'unknown@example.com',
+        studentPhone: details.phone || '',
+        planName: notes.plan_name || 'Unknown Plan',
+        planBillingMode: (notes.billing_mode as 'session' | 'month') || 'session',
+        planAmount: parseFloat(notes.amount_usd) || 0,
+        paymentId
+      });
+      console.log('[Razorpay] appendPricingEnrollment returned:', result);
+
+      if (result.success) {
+        this.markPaymentSyncedToSheets(paymentId);
+        console.log('[Razorpay] ✅✅✅ PRICING ENROLLMENT SUCCESSFULLY SYNCED ✅✅✅', paymentId);
+      } else {
+        console.error('[Razorpay] ❌ Pricing enrollment sync FAILED:', result.error || result.message);
+      }
+    } catch (error) {
+      console.error('[Razorpay] Pricing enrollment sync error:', error);
+      throw error;
+    }
+  }
+
+  private static getStoredPaymentNotes(): any {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = window.sessionStorage.getItem('razorpay_payment_notes');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private static storePaymentNotes(notes: any): void {
+    if (typeof window === 'undefined') return;
+    try {
+      window.sessionStorage.setItem('razorpay_payment_notes', JSON.stringify(notes));
+    } catch {
+      // no-op
     }
   }
 
@@ -167,7 +313,10 @@ export class RazorpayService {
     );
   }
 
-  private static async requestDemoDetailsFromUI(initial: DemoBookingDetails): Promise<DemoBookingDetails> {
+  private static async requestDemoDetailsFromUI(
+    initial: DemoBookingDetails,
+    formConfig?: DemoDetailsFormConfig
+  ): Promise<DemoBookingDetails> {
     if (typeof window === 'undefined') return initial;
 
     return new Promise<DemoBookingDetails>((resolve, reject) => {
@@ -178,11 +327,16 @@ export class RazorpayService {
         window.removeEventListener('vr:demo-details-cancelled', onCancelled as EventListener);
       };
 
-      const onSubmitted = (event: CustomEvent<DemoBookingDetails>) => {
+      const onSubmitted = (event: CustomEvent<any>) => {
         if (settled) return;
         settled = true;
         cleanup();
-        resolve(event.detail || {});
+        const payload = event.detail;
+        const submitted =
+          payload && typeof payload === 'object' && payload.details && typeof payload.details === 'object'
+            ? payload.details
+            : payload;
+        resolve(submitted || {});
       };
 
       const onCancelled = () => {
@@ -197,16 +351,19 @@ export class RazorpayService {
 
       window.dispatchEvent(
         new CustomEvent('vr:open-demo-details-form', {
-          detail: initial || {}
+          detail: {
+            details: initial || {},
+            formConfig: formConfig || {}
+          }
         })
       );
     });
   }
 
-  private static async ensureDemoBookingDetails(): Promise<DemoBookingDetails> {
+  private static async ensureDemoBookingDetails(formConfig?: DemoDetailsFormConfig): Promise<DemoBookingDetails> {
     const stored = this.getStoredDemoBookingDetails();
     // Always open details form before payment so the user confirms current data.
-    const collected = await this.requestDemoDetailsFromUI(stored);
+    const collected = await this.requestDemoDetailsFromUI(stored, formConfig);
     const merged = {
       ...stored,
       ...(collected || {})
@@ -303,6 +460,37 @@ export class RazorpayService {
     return payload.order as RazorpayOrderResponse;
   }
 
+  private static async createSessionOrder(
+    amount: number,
+    currency: string,
+    planName?: string,
+    billingMode?: 'session' | 'month'
+  ): Promise<RazorpayOrderResponse> {
+    const { countryCode, preferredCurrency } = this.getClientRegionContext();
+
+    const response = await fetch('/api/razorpay/create-session-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount,
+        currency,
+        preferredCurrency,
+        countryCode,
+        planName,
+        billingMode
+      })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.order?.id) {
+      throw new Error(payload?.error || 'Unable to create session order');
+    }
+
+    return payload.order as RazorpayOrderResponse;
+  }
+
   static async initiatePayment(options: RazorpayOptions): Promise<void> {
     try {
       if (!this.KEY_ID) {
@@ -347,9 +535,9 @@ export class RazorpayService {
           contact: prefillPhone
         },
         notes: {
-          note_key_1: 'Demo Booking',
+          note_key_1: options.flowType === 'session' ? 'Session Enrollment' : 'Demo Booking',
           note_key_2: 'VR Robotics Academy',
-          program: 'Robotics Course (Grades 1-12)',
+          program: options.flowType === 'session' ? 'Paid Robotics Session' : 'Robotics Course (Grades 1-12)',
           parent_name: this.sanitizeNoteValue(storedDetails.parentName),
           parent_email: this.sanitizeNoteValue(storedDetails.email),
           parent_phone: this.sanitizeNoteValue(storedDetails.phone),
@@ -357,6 +545,8 @@ export class RazorpayService {
           child_age: this.sanitizeNoteValue(storedDetails.childAge),
           preferred_date: this.sanitizeNoteValue(storedDetails.preferredDate),
           preferred_time: this.sanitizeNoteValue(storedDetails.preferredTime)
+          ,
+          ...(options.notes || {})
         },
         method: {},
         theme: {
@@ -413,20 +603,207 @@ export class RazorpayService {
 
   static async initiateDemo1DollarPayment(
     onSuccess?: (response: any) => void,
-    onError?: (error: any) => void
+    onError?: (error: any) => void,
+    options?: { persistDemoAfterPayment?: boolean }
   ): Promise<void> {
-    const details = await this.ensureDemoBookingDetails();
+    const details = await this.ensureDemoBookingDetails({
+      title: 'Book Demo Details',
+      subtitle: 'Fill the form and continue to payment.',
+      submitText: 'Continue to Payment'
+    });
     await this.initiatePayment({
       amount: 54, // 54 cents = USD 0.54
       currency: 'USD',
       description: this.PRODUCT_DESCRIPTION,
       name: 'VR Robotics Academy',
+      flowType: 'demo',
+      notes: {
+        persist_demo_after_payment: options?.persistDemoAfterPayment === false ? '0' : '1'
+      },
       prefillName: details.parentName || '',
       prefillEmail: details.email || '',
       prefillPhone: details.phone || '',
       onSuccess,
       onError
     });
+  }
+
+  static async initiatePlanPayment(options: PlanPaymentOptions): Promise<void> {
+    const amountUsd = Number(options.amountUsd);
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) {
+      throw new Error('Invalid plan amount');
+    }
+
+    const billingText = options.billingMode === 'month' ? 'Per Month' : 'Per Session';
+    const details = await this.ensureDemoBookingDetails({
+      title: 'Session Enrollment Form',
+      subtitle: `${options.actionLabel || options.planName} (${billingText})`,
+      submitText: `Pay $${amountUsd}`
+    });
+    const amountInUsdCents = Math.max(1, Math.round(amountUsd * 100));
+    const description = `${options.planName} plan - $${amountUsd}/${options.billingMode}`;
+
+    await this.initiatePayment({
+      amount: amountInUsdCents,
+      currency: 'USD',
+      description,
+      name: 'VR Robotics Academy',
+      flowType: 'session',
+      notes: {
+        plan_name: this.sanitizeNoteValue(options.planName),
+        billing_mode: this.sanitizeNoteValue(options.billingMode),
+        amount_usd: this.sanitizeNoteValue(String(amountUsd)),
+        action_label: this.sanitizeNoteValue(options.actionLabel || options.planName)
+      },
+      prefillName: details.parentName || '',
+      prefillEmail: details.email || '',
+      prefillPhone: details.phone || '',
+      onSuccess: options.onSuccess,
+      onError: options.onError
+    });
+  }
+
+  static async initiateSessionEnrollmentPayment(options: PlanPaymentOptions): Promise<void> {
+    const amountUsd = Number(options.amountUsd);
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) {
+      throw new Error('Invalid plan amount');
+    }
+
+    const billingText = options.billingMode === 'month' ? 'Per Month' : 'Per Session';
+    const details = await this.ensureDemoBookingDetails({
+      title: 'Session Enrollment Form',
+      subtitle: `${options.actionLabel || options.planName} (${billingText})`,
+      submitText: `Pay $${amountUsd}`
+    });
+
+    const amountInUsdCents = Math.max(1, Math.round(amountUsd * 100));
+    const description = `${options.planName} - $${amountUsd}/${options.billingMode}`;
+
+    try {
+      if (!this.SESSION_KEY_ID) {
+        throw new Error('Missing VITE_RAZORPAY_SESSION_KEY_ID. Configure it in your env file.');
+      }
+
+      await this.loadRazorpayScript();
+      const region = this.getClientRegionContext();
+      let order: RazorpayOrderResponse | null = null;
+      
+      try {
+        order = await this.createSessionOrder(
+          amountInUsdCents,
+          'USD',
+          options.planName,
+          options.billingMode
+        );
+      } catch (createOrderError) {
+        console.warn('[Razorpay] Session order creation failed, using fallback checkout mode', createOrderError);
+      }
+
+      const fallbackCurrency = 'USD';
+      const fallbackAmount = amountInUsdCents;
+
+      const storedDetails = this.getStoredDemoBookingDetails();
+      const prefillName = options.planName || storedDetails.parentName || '';
+      const prefillEmail = options.planName || storedDetails.email || '';
+      const prefillPhone = storedDetails.phone || '';
+
+      // Prepare payment notes for Google Sheets tracking
+      const paymentNotes = {
+        note_key_1: 'Session Enrollment',
+        note_key_2: 'VR Robotics Academy',
+        program: 'Paid Robotics Session',
+        payment_type: 'session_enrollment',
+        plan_name: this.sanitizeNoteValue(options.planName),
+        billing_mode: this.sanitizeNoteValue(options.billingMode),
+        amount_usd: this.sanitizeNoteValue(String(amountUsd)),
+        action_label: this.sanitizeNoteValue(options.actionLabel || options.planName),
+        parent_name: this.sanitizeNoteValue(storedDetails.parentName),
+        parent_email: this.sanitizeNoteValue(storedDetails.email),
+        parent_phone: this.sanitizeNoteValue(storedDetails.phone),
+        child_name: this.sanitizeNoteValue(storedDetails.childName),
+        child_age: this.sanitizeNoteValue(storedDetails.childAge)
+      };
+
+      console.log('[Razorpay] 🟢 PREPARING PAYMENT NOTES FOR GOOGLE SHEETS SYNC:', paymentNotes);
+
+      // Store notes for later retrieval during payment success
+      this.storePaymentNotes(paymentNotes);
+      console.log('[Razorpay] 🟢 NOTES STORED IN SESSION STORAGE');
+
+      const razorpayOptions: any = {
+        key: this.SESSION_KEY_ID,
+        amount: order?.amount || fallbackAmount,
+        currency: order?.currency || fallbackCurrency,
+        name: 'VR Robotics Academy',
+        description: this.toRazorpayDescription(description),
+        image: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1764505259/VR_Robotics_Logo_upscaled_1_rrrrn8.png',
+        handler: async (response: any) => {
+          console.log('[Razorpay] 🟢 PAYMENT SUCCESS RECEIVED, PAYMENT ID:', response.razorpay_payment_id);
+          // Add stored notes to the response for sync handler
+          response.razorpay_notes = paymentNotes;
+          console.log('[Razorpay] PAYMENT SUCCESS, attached notes:', response.razorpay_notes);
+          try {
+            await this.syncPaidBookingToGoogleSheets(response);
+            if (options.onSuccess) {
+              options.onSuccess(response);
+              return;
+            }
+            this.defaultSuccessHandler(response);
+          } catch (syncError) {
+            const message = syncError instanceof Error ? syncError.message : 'Payment recorded but failed to persist enrollment.';
+            console.error('[Razorpay] Enrollment persistence failed after payment:', syncError);
+            if (options.onError) {
+              options.onError({ message, details: syncError });
+            } else {
+              alert(message);
+            }
+          }
+        },
+        prefill: {
+          name: prefillName,
+          email: prefillEmail,
+          contact: prefillPhone
+        },
+        notes: paymentNotes,
+        method: {
+          upi: false,
+          card: true,
+          netbanking: false,
+          wallet: false
+        },
+        theme: {
+          color: '#ff8c42'
+        },
+        modal: {
+          ondismiss: () => {
+            if (options.onError) {
+              options.onError({ message: 'Payment cancelled' });
+            }
+          }
+        }
+      };
+
+      if (order?.id) {
+        razorpayOptions.order_id = order.id;
+      }
+
+      // @ts-ignore Razorpay is loaded from checkout.js at runtime
+      const rzp = new window.Razorpay(razorpayOptions);
+      rzp.on('payment.failed', (response: any) => {
+        const reason = response?.error?.description || response?.error?.reason || 'Payment failed';
+        if (options.onError) {
+          options.onError({ message: reason, details: response?.error || response });
+        }
+      });
+      rzp.open();
+    } catch (error) {
+      console.error('[Razorpay] Session enrollment payment initiation failed:', error);
+      const message = error instanceof Error ? error.message : 'Unable to open payment checkout';
+      if (options.onError) {
+        options.onError(error);
+      }
+      alert(message);
+    }
   }
 
   private static defaultSuccessHandler(response: any): void {
@@ -436,4 +813,5 @@ export class RazorpayService {
 }
 
 export default RazorpayService;
+
 

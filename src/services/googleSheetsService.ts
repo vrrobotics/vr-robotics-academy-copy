@@ -118,6 +118,78 @@ export class GoogleSheetsService {
   }
 
   /**
+   * Append pricing program enrollment to Google Sheet
+   * Used when students enroll in pricing plans through the pricing page
+   */
+  static async appendPricingEnrollment(enrollmentData: {
+    studentName: string;
+    studentEmail: string;
+    studentPhone?: string;
+    planName: string;
+    planBillingMode: 'session' | 'month';
+    planAmount: number;
+    paymentId: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    error?: string;
+  }> {
+    try {
+      const scriptUrl = this.getScriptUrl();
+      if (!scriptUrl) {
+        console.warn('[GoogleSheets] No Google Apps Script URL configured - skipping pricing enrollment update');
+        return {
+          success: false,
+          message: 'Google Sheets integration not configured',
+          error: 'VITE_GOOGLE_SCRIPT_URL not set'
+        };
+      }
+
+      const payload = {
+        action: 'appendPricingEnrollment',
+        data: {
+          enrollmentDate: new Date().toLocaleDateString(),
+          studentName: enrollmentData.studentName,
+          studentEmail: enrollmentData.studentEmail,
+          studentPhone: enrollmentData.studentPhone || '',
+          planName: enrollmentData.planName,
+          billingMode: enrollmentData.planBillingMode,
+          amount: enrollmentData.planAmount,
+          paymentId: enrollmentData.paymentId,
+          status: 'completed'
+        }
+      };
+
+      console.log('[GoogleSheets] 🚀 Sending pricing enrollment request...');
+      console.log('[GoogleSheets] Script URL:', scriptUrl);
+      console.log('[GoogleSheets] Payload:', JSON.stringify(payload, null, 2));
+
+      const response = await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('[GoogleSheets] ✅ Fetch completed. Status:', response.status);
+      console.log('[GoogleSheets] ✅✅✅ PRICING ENROLLMENT SENT TO GOOGLE SHEETS ✅✅✅');
+      return {
+        success: true,
+        message: 'Pricing enrollment added to Google Sheet'
+      };
+    } catch (error) {
+      console.error('[GoogleSheets] Error appending pricing enrollment to sheet:', error);
+      return {
+        success: false,
+        message: 'Failed to update Google Sheet',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Batch append multiple demo bookings
    */
   static async appendMultipleBookings(bookings: any[]): Promise<{

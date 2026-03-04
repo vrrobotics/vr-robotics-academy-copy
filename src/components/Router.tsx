@@ -4,6 +4,17 @@ import ErrorPage from "@/components/ErrorPage";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import RazorpayService, { type DemoBookingDetails } from "@/services/razorpayService";
 
+interface DemoDetailsFormConfig {
+  title?: string;
+  subtitle?: string;
+  submitText?: string;
+}
+
+interface DemoDetailsOpenPayload {
+  details?: DemoBookingDetails;
+  formConfig?: DemoDetailsFormConfig;
+}
+
 // Lazy load page components for better performance
 const HomePage = lazy(() => import("@/components/pages/HomePage").catch(() => {
   return {
@@ -12,7 +23,7 @@ const HomePage = lazy(() => import("@/components/pages/HomePage").catch(() => {
         <h1>🚀 VR Robotics Academy</h1>
         <p>Welcome to the home page</p>
         <p style={{ color: '#666' }}>The router is working!</p>
-        <a href="/vr-robotics-academy/curriculum" style={{ display: 'inline-block', marginTop: '20px', padding: '10px 20px', background: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '5px' }}>
+        <a href={`${import.meta.env.BASE_URL}curriculum`} style={{ display: 'inline-block', marginTop: '20px', padding: '10px 20px', background: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '5px' }}>
           View Curriculum
         </a>
       </div>
@@ -444,7 +455,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
 ], {
-  basename: '/vr-robotics-academy'
+  basename: import.meta.env.BASE_URL
 });
 
 export default function AppRouter() {
@@ -462,6 +473,11 @@ export default function AppRouter() {
     interests: '',
     message: ''
   });
+  const [demoFormConfig, setDemoFormConfig] = useState<Required<DemoDetailsFormConfig>>({
+    title: 'Book Demo Details',
+    subtitle: 'Fill the form and continue to payment.',
+    submitText: 'Continue to Payment'
+  });
 
   useEffect(() => {
     const unsubscribe = router.subscribe((state) => {
@@ -476,11 +492,26 @@ export default function AppRouter() {
 
   useEffect(() => {
     const openForm = (event: Event) => {
-      const customEvent = event as CustomEvent<DemoBookingDetails>;
+      const customEvent = event as CustomEvent<DemoDetailsOpenPayload | DemoBookingDetails>;
+      const payload = customEvent.detail;
+      const incomingDetails =
+        payload && typeof payload === 'object' && 'details' in payload
+          ? payload.details || {}
+          : ((payload as DemoBookingDetails) || {});
+      const incomingFormConfig =
+        payload && typeof payload === 'object' && 'formConfig' in payload
+          ? payload.formConfig || {}
+          : {};
+
       setDemoDetails((prev) => ({
         ...prev,
-        ...(customEvent.detail || {})
+        ...(incomingDetails || {})
       }));
+      setDemoFormConfig({
+        title: incomingFormConfig.title || 'Book Demo Details',
+        subtitle: incomingFormConfig.subtitle || 'Fill the form and continue to payment.',
+        submitText: incomingFormConfig.submitText || 'Continue to Payment'
+      });
       setShowDemoDetailsForm(true);
     };
 
@@ -535,7 +566,7 @@ export default function AppRouter() {
     e.preventDefault();
     RazorpayService.storeDemoBookingDetails(demoDetails);
     setShowDemoDetailsForm(false);
-    window.dispatchEvent(new CustomEvent('vr:demo-details-submitted', { detail: demoDetails }));
+    window.dispatchEvent(new CustomEvent('vr:demo-details-submitted', { detail: { details: demoDetails } }));
   };
 
   return (
@@ -545,7 +576,12 @@ export default function AppRouter() {
         <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-2xl border border-primary/30 bg-background p-6 md:p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-2xl text-foreground">Book Demo Details</h2>
+              <div>
+                <h2 className="font-heading text-2xl text-foreground">{demoFormConfig.title}</h2>
+                {demoFormConfig.subtitle && (
+                  <p className="font-paragraph text-sm text-foreground/70 mt-1">{demoFormConfig.subtitle}</p>
+                )}
+              </div>
               <button type="button" onClick={handleCloseDemoForm} className="text-foreground/70 hover:text-foreground">
                 Close
               </button>
@@ -579,7 +615,7 @@ export default function AppRouter() {
               </div>
               <textarea name="message" value={demoDetails.message || ''} onChange={handleDetailChange} rows={3} placeholder="Additional message (optional)" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
               <button type="submit" className="w-full bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]">
-                Continue to Payment
+                {demoFormConfig.submitText}
               </button>
             </form>
           </div>

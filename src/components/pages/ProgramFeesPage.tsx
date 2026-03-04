@@ -7,23 +7,74 @@ import { Check, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BookDemoButton from '@/components/BookDemoButton';
+import RazorpayService from '@/services/razorpayService';
 
 export default function ProgramFeesPage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<ProgramFees[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingMode, setBillingMode] = useState<'session' | 'month'>('session');
+  const [processingPlanKey, setProcessingPlanKey] = useState<string | null>(null);
 
-  // Monthly pricing (per month)
-  const monthlyPrices: Record<string, number> = {
-    'plan-basic': 149,
-    'plan-premium': 152,
-    'plan-elite': 180
+  const planPricingById: Record<string, { session: number; month: number; cta: string }> = {
+    'plan-basic': { session: 20, month: 160, cta: 'Start Learning' },
+    'plan-premium': { session: 25, month: 200, cta: 'Get Started Now' },
+    'plan-elite': { session: 30, month: 200, cta: 'Book Your Session' }
+  };
+
+  const fallbackPricingByCta: Record<string, { session: number; month: number; cta: string }> = {
+    'start learning': { session: 20, month: 160, cta: 'Start Learning' },
+    'get started now': { session: 25, month: 200, cta: 'Get Started Now' },
+    'book your session': { session: 30, month: 200, cta: 'Book Your Session' }
+  };
+
+  const getPlanPricing = (plan: ProgramFees) => {
+    const byId = planPricingById[plan._id];
+    if (byId) return byId;
+
+    const normalizedCta = (plan.callToActionText || '').trim().toLowerCase();
+    const byCta = fallbackPricingByCta[normalizedCta];
+    if (byCta) return byCta;
+
+    const fallbackSession = Number(plan.price);
+    return {
+      session: Number.isFinite(fallbackSession) && fallbackSession > 0 ? fallbackSession : 0,
+      month: Number.isFinite(fallbackSession) && fallbackSession > 0 ? fallbackSession : 0,
+      cta: plan.callToActionText || 'Get Started'
+    };
   };
 
   useEffect(() => {
     loadPlans();
   }, []);
+
+  const handlePlanCheckout = async (plan: ProgramFees) => {
+    const pricing = getPlanPricing(plan);
+    const amountUsd = billingMode === 'session' ? pricing.session : pricing.month;
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) {
+      alert('Invalid plan amount. Please try again.');
+      return;
+    }
+
+    const planKey = `${plan._id}-${billingMode}`;
+    setProcessingPlanKey(planKey);
+    try {
+      await RazorpayService.initiateSessionEnrollmentPayment({
+        planName: plan.planName,
+        billingMode,
+        amountUsd,
+        actionLabel: `${pricing.cta}${billingMode === 'month' ? ' /per month' : ''}`,
+        onSuccess: () => {
+          console.log(`[ProgramFees] Payment successful for ${plan.planName} (${billingMode})`);
+        },
+        onError: (error) => {
+          console.error(`[ProgramFees] Payment failed for ${plan.planName}:`, error);
+        }
+      });
+    } finally {
+      setProcessingPlanKey((current) => (current === planKey ? null : current));
+    }
+  };
 
   const loadPlans = async () => {
     setLoading(true);
@@ -44,7 +95,7 @@ export default function ProgramFeesPage() {
       {
         _id: 'plan-premium',
         planName: 'Premium',
-        price: 22,
+        price: 25,
         billingCycle: 'session',
         shortDescription: 'Best for students seeking personalized attention and guidance',
         featuresSummary: `Small Group Class - 5 Students Online\nScheduled live sessions (2x per week)\nAll learning materials + advanced content\nPersonalized feedback on projects\nPriority support & guidance\n2 hours 1-on-1 mentoring per month\nProgress tracking dashboard\nProfessional certificate`,
@@ -54,7 +105,7 @@ export default function ProgramFeesPage() {
       {
         _id: 'plan-elite',
         planName: 'Elite',
-        price: 25,
+        price: 30,
         billingCycle: 'session',
         shortDescription: 'Ultimate program for serious learners - fully customized learning',
         featuresSummary: `One-on-One Online Classes\nFlexible scheduling (arrange with instructor)\nCustom curriculum tailored to your goals\nPremium robotics kit (included)\nAdvanced projects & real-world challenges\nCareer pathway planning\nElite professional certificate\nDirect instructor access`,
@@ -195,13 +246,13 @@ export default function ProgramFeesPage() {
 
                   <h3 className="font-heading text-3xl mb-4 text-foreground">{plan.planName}</h3>
                   
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="font-heading text-5xl text-primary">
-                        ${billingMode === 'session' ? plan.price : monthlyPrices[plan._id]}
-                      </span>
-                      <span className="font-paragraph text-foreground/60">
-                        /{billingMode === 'session' ? 'session' : 'month'}
+	                  <div className="mb-6">
+	                    <div className="flex items-baseline gap-2 mb-2">
+	                      <span className="font-heading text-5xl text-primary">
+	                        ${billingMode === 'session' ? getPlanPricing(plan).session : getPlanPricing(plan).month}
+	                      </span>
+	                      <span className="font-paragraph text-foreground/60">
+	                        /{billingMode === 'session' ? 'session' : 'per month'}
                       </span>
                     </div>
                   </div>
@@ -223,18 +274,23 @@ export default function ProgramFeesPage() {
                     </div>
                   )}
 
-                  <BookDemoButton
-                    variant={plan.isRecommended ? 'primary' : 'outline'}
-                    size="md"
-                    className="w-full"
-                    source="program_fees_page"
-                    children={plan.callToActionText || 'Get Started'}
-                    onSuccess={() => {
-                      console.log('User is ready to enroll in:', plan.planName);
-                    }}
-                  />
-                </motion.div>
-              ))}
+                  <motion.button
+                    className={`w-full font-heading font-semibold px-6 py-3 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed ${
+                      plan.isRecommended
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-transparent text-secondary border-2 border-secondary'
+                    }`}
+                    whileHover={{ scale: processingPlanKey === `${plan._id}-${billingMode}` ? 1 : 1.02 }}
+                    whileTap={{ scale: processingPlanKey === `${plan._id}-${billingMode}` ? 1 : 0.98 }}
+                    onClick={() => handlePlanCheckout(plan)}
+                    disabled={processingPlanKey === `${plan._id}-${billingMode}`}
+	                  >
+	                    {processingPlanKey === `${plan._id}-${billingMode}`
+	                      ? 'Opening Payment...'
+	                      : `${getPlanPricing(plan).cta}${billingMode === 'month' ? ' /per month' : ''}`}
+	                  </motion.button>
+	                </motion.div>
+	              ))}
             </div>
           )}
         </div>

@@ -17,26 +17,39 @@ function doGet(e) {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Main doPost function - receives data from the frontend
- * This allows POST requests from your website
- */
 function doPost(e) {
   try {
+    Logger.log('[GAS] ===== POST REQUEST RECEIVED =====');
+    Logger.log('[GAS] Raw payload:', e.postData.contents);
+    
     const payload = JSON.parse(e.postData.contents);
+    Logger.log('[GAS] Parsed payload:', payload);
+    Logger.log('[GAS] Action:', payload.action);
     
     if (payload.action === 'appendRow') {
+      Logger.log('[GAS] Processing appendRow action');
       const result = appendBookingRow(payload.data);
       return ContentService.createTextOutput(JSON.stringify(result))
         .setMimeType(ContentService.MimeType.JSON);
     }
     
+    if (payload.action === 'appendPricingEnrollment') {
+      Logger.log('[GAS] Processing appendPricingEnrollment action');
+      Logger.log('[GAS] Enrollment data:', payload.data);
+      const result = appendPricingEnrollment(payload.data);
+      Logger.log('[GAS] Result:', result);
+      return ContentService.createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    Logger.log('[GAS] Unknown action:', payload.action);
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: 'Unknown action'
     })).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
-    Logger.log('Error in doPost:', error);
+    Logger.log('[GAS] ERROR in doPost:', error);
+    Logger.log('[GAS] Error message:', error.toString());
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: error.message
@@ -84,6 +97,64 @@ function appendBookingRow(bookingData) {
     };
   } catch (error) {
     Logger.log('Error appending row:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Append a pricing program enrollment to a dedicated sheet
+ * Creates/appends to "Session Enrollments" sheet
+ */
+function appendPricingEnrollment(enrollmentData) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = spreadsheet.getSheetByName('Session Enrollments');
+    
+    // Create the sheet if it doesn't exist
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet('Session Enrollments');
+      
+      // Add headers
+      const headers = [
+        'Enrollment Date',
+        'Student Name',
+        'Student Email',
+        'Student Phone',
+        'Plan Name',
+        'Billing Mode',
+        'Amount (USD)',
+        'Payment ID',
+        'Status'
+      ];
+      sheet.appendRow(headers);
+    }
+
+    // Prepare the row data
+    const rowData = [
+      enrollmentData.enrollmentDate || new Date().toLocaleDateString(),
+      enrollmentData.studentName || '',
+      enrollmentData.studentEmail || '',
+      enrollmentData.studentPhone || '',
+      enrollmentData.planName || '',
+      enrollmentData.billingMode || '',
+      enrollmentData.amount || 0,
+      enrollmentData.paymentId || '',
+      enrollmentData.status || 'completed'
+    ];
+
+    // Append the row
+    sheet.appendRow(rowData);
+
+    Logger.log('Successfully appended pricing enrollment:', rowData);
+    return {
+      success: true,
+      message: 'Pricing enrollment appended successfully'
+    };
+  } catch (error) {
+    Logger.log('Error appending pricing enrollment:', error);
     return {
       success: false,
       error: error.message

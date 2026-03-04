@@ -113,7 +113,8 @@ export default function DemoBookingPage() {
             (paymentError) => {
               const message = paymentError?.message || 'Payment is required to book the demo.';
               reject(new Error(message));
-            }
+            },
+            { persistDemoAfterPayment: false }
           ).catch((initError) => {
             reject(initError instanceof Error ? initError : new Error('Unable to open payment checkout.'));
           });
@@ -122,19 +123,18 @@ export default function DemoBookingPage() {
 
       // ✅ Teacher selection is optional - admin will assign later
       const demoSessionData: any = {
-        id: crypto.randomUUID(),
-        student_email: formData.email,
-        student_name: formData.childName,
-        // Convert date string (YYYY-MM-DD) to ISO timestamp for Supabase
-        scheduled_date: formData.preferredDate ? new Date(formData.preferredDate + 'T00:00:00Z').toISOString() : null,
-        status: 'scheduled',
-        // Additional fields for reference
-        parent_name: formData.parentName,
-        parent_phone: formData.phone,
-        student_age: formData.childAge ? parseInt(formData.childAge) : undefined,
-        preferred_time: formData.preferredTime,
+        _id: crypto.randomUUID(),
+        parentname: formData.parentName,
+        parentemail: formData.email,
+        parentphone: formData.phone,
+        childname: formData.childName,
+        childage: formData.childAge ? parseInt(formData.childAge) : undefined,
+        preferreddate: formData.preferredDate || undefined,
+        preferredtime: formData.preferredTime,
         interests: formData.interests,
-        message: formData.message
+        message: formData.message,
+        teacherid: formData.selectedTeacherId || undefined,
+        status: 'pending'
       };
 
       console.log('[DemoBooking] Creating demo session with data:', demoSessionData);
@@ -143,11 +143,11 @@ export default function DemoBookingPage() {
       let dbSuccess = false;
       try {
         const createResult = await BaseCrudService.create<any>('demosessions', demoSessionData);
-        console.log('[DemoBooking] ✓ Demo session created successfully:', createResult);
+        console.log('[DemoBooking] Database save success:', createResult);
         dbSuccess = true;
       } catch (dbErr) {
-        console.warn('[DemoBooking] ⚠ Database save failed:', dbErr);
-        console.log('[DemoBooking] Continuing with email/Google Sheets...');
+        console.error('[DemoBooking] Database save failed after payment:', dbErr);
+        throw new Error('Payment completed but booking could not be saved to database. Please contact support with your payment ID.');
       }
 
       // ✅ Send email notification to admin with student information
@@ -197,7 +197,7 @@ export default function DemoBookingPage() {
               preferredTime: formData.preferredTime,
               interests: formData.interests,
               message: formData.message,
-              bookingId: demoSessionData.id,
+              bookingId: demoSessionData._id,
               paymentId: verifiedPaymentId,
               paymentStatus: 'paid'
             });
@@ -219,13 +219,11 @@ export default function DemoBookingPage() {
       }
 
       // If at least one method succeeded (ideally email or sheets), show success
-      if (dbSuccess || emailSuccess || sheetsSuccess) {
+      if (dbSuccess) {
         console.log('[DemoBooking] ✓ Booking submitted successfully via at least one method');
         setSubmitted(true);
       } else {
-        // All methods failed - but still allow submission to continue locally
-        console.warn('[DemoBooking] ⚠ All storage methods failed, but showing success (local fallback)');
-        setSubmitted(true);
+        throw new Error('Booking could not be saved.');
       }
     } catch (err) {
       console.error('[DemoBooking] Error submitting form:', err);
@@ -766,6 +764,7 @@ export default function DemoBookingPage() {
     </>
   );
 }
+
 
 
 

@@ -4,7 +4,7 @@ import react from "@astrojs/react";
 
 export default defineConfig({
   site: 'https://vrrobotics.github.io',
-  base: '/vr-robotics-academy',
+  base: process.env.PUBLIC_DEPLOY_TARGET === 'github' ? '/vr-robotics-academy' : '/',
   
   integrations: [
     tailwind(),
@@ -16,5 +16,5 @@ export default defineConfig({
     port: 3000,
   },
   
-  output: 'static',
+  output: 'server',
 });

@@ -34,9 +34,19 @@ export default function TeacherDemoManagementPage() {
 
       // Load demo sessions assigned to this teacher
       const { items: sessionsData = [] } = await BaseCrudService.getAll<DemoSessions>('demosessions');
+      const normalizedSessions = (sessionsData as any[]).map((session) => ({
+        ...session,
+        _id: session._id ?? session.id,
+        teacherId: session.teacherId ?? session.teacherid,
+        childName: session.childName ?? session.childname,
+        childAge: session.childAge ?? session.childage,
+        preferredDate: session.preferredDate ?? session.preferreddate,
+        preferredTime: session.preferredTime ?? session.preferredtime,
+        parentName: session.parentName ?? session.parentname
+      }));
       
       // Filter sessions assigned to this teacher
-      const assignedSessions = sessionsData.filter(session => session.teacherId === userId && session.status === 'approved');
+      const assignedSessions = normalizedSessions.filter(session => session.teacherId === userId && session.status === 'approved');
       
       // Transform to DemoSession format
       const transformedSessions: DemoSession[] = assignedSessions.map(session => ({
