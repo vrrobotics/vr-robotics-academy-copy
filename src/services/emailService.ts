@@ -328,16 +328,17 @@ class EmailService {
         <html>
           <head>
             <style>
-              body { font-family: Arial, sans-serif; color: #333; }
+              body { font-family: Arial, sans-serif; color: #f5f5f5; background: #0b0b0b; }
               .container { max-width: 700px; margin: 0 auto; padding: 20px; }
               .header { background-color: #FF6A00; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
               .header h1 { margin: 0; font-size: 24px; }
-              .content { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-              .field { margin-bottom: 15px; padding: 12px; background-color: white; border-left: 4px solid #FF6A00; border-radius: 4px; }
-              .label { font-weight: bold; color: #FF6A00; display: block; margin-bottom: 5px; }
-              .value { color: #333; }
-              .section-title { font-weight: bold; color: #FF6A00; margin-top: 20px; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #FF6A00; padding-bottom: 8px; }
-              .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+              .content { background-color: #141414; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #2a2a2a; }
+              .field { margin-bottom: 15px; padding: 12px; background-color: #1b1b1b; border-left: 4px solid #FF6A00; border-radius: 4px; }
+              .label { font-weight: bold; color: #ff8c42; display: block; margin-bottom: 5px; }
+              .value { color: #f5f5f5; }
+              .section-title { font-weight: bold; color: #1b1b1b; margin-top: 20px; margin-bottom: 10px; font-size: 16px; background:#d4af37; padding:10px 12px; border-radius:6px; }
+              .footer { text-align: center; color: #b8b8b8; font-size: 12px; margin-top: 20px; border-top: 1px solid #2a2a2a; padding-top: 10px; }
+              a { color: #f5f5f5; }
             </style>
           </head>
           <body>
@@ -394,8 +395,8 @@ class EmailService {
                 </div>
                 ` : ''}
 
-                <div style="background-color: #FFE6CC; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #FF6A00;">
-                  <p style="margin: 0; color: #333;"><strong>Next Steps:</strong> Review this booking and contact the parent to confirm the demo session.</p>
+                <div style="background-color: #d4af37; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #FF6A00;">
+                  <p style="margin: 0; color: #1b1b1b;"><strong>Next Steps:</strong> Review this booking and contact the parent to confirm the demo session.</p>
                 </div>
               </div>
 
@@ -445,20 +446,19 @@ class EmailService {
     const parentHtml = `
       <!DOCTYPE html>
       <html>
-        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
-          <h2 style="color: #ff6a00;">Demo Booking Confirmed</h2>
-          <p>Dear ${demoData.parentName},</p>
-          <p>
-            You have successfully subscribed to a demo session with VR Robotics Academy.
-          </p>
-          <p>
-            Our team will get in touch within the next 24 hours to confirm your slot.
-          </p>
-          <p><strong>Child:</strong> ${demoData.childName}</p>
-          <p><strong>Preferred Date:</strong> ${demoData.preferredDate}</p>
-          <p><strong>Preferred Time:</strong> ${this.formatTimeSlot(demoData.preferredTime)}</p>
-          ${demoData.paymentId ? `<p><strong>Payment ID:</strong> ${demoData.paymentId}</p>` : ''}
-          <p>Thank you,<br/>VR Robotics Academy Team</p>
+        <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
+          <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">Demo Booking Confirmed</div>
+            <div style="padding:14px 18px;color:#b8b8b8;">Dear ${demoData.parentName},</div>
+            <div style="padding:0 18px 10px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Your Booking Details</div></div>
+            <div style="padding:0 18px 18px;">
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Child:</strong> ${demoData.childName}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Preferred Date:</strong> ${demoData.preferredDate}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Preferred Time:</strong> ${this.formatTimeSlot(demoData.preferredTime)}</div>
+              ${demoData.paymentId ? `<div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;"><strong style="color:#ff8c42;">Payment ID:</strong> ${demoData.paymentId}</div>` : ''}
+            </div>
+            <div style="padding:0 18px 18px;color:#b8b8b8;">Our team will get in touch within the next 24 hours to confirm your slot.</div>
+          </div>
         </body>
       </html>
     `;
@@ -486,16 +486,20 @@ class EmailService {
     const adminHtml = `
       <!DOCTYPE html>
       <html>
-        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
-          <h2 style="color: #ff6a00;">New Session Enrollment (Paid)</h2>
-          <p><strong>Parent Name:</strong> ${sessionData.parentName}</p>
-          <p><strong>Parent Email:</strong> ${sessionData.parentEmail}</p>
-          <p><strong>Parent Phone:</strong> ${sessionData.parentPhone || '-'}</p>
-          <p><strong>Student Name:</strong> ${sessionData.studentName}</p>
-          <p><strong>Plan:</strong> ${sessionData.planName}</p>
-          <p><strong>Billing Mode:</strong> ${sessionData.billingMode}</p>
-          <p><strong>Amount (USD):</strong> ${sessionData.amountUsd}</p>
-          ${sessionData.paymentId ? `<p><strong>Payment ID:</strong> ${sessionData.paymentId}</p>` : ''}
+        <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
+          <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">New Session Enrollment (Paid)</div>
+            <div style="padding:0 18px 10px;margin-top:14px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Enrollment Details</div></div>
+            <div style="padding:0 18px 18px;">
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Parent Name:</strong> ${sessionData.parentName}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Parent Email:</strong> ${sessionData.parentEmail}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Parent Phone:</strong> ${sessionData.parentPhone || '-'}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Student Name:</strong> ${sessionData.studentName}</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Plan:</strong> ${sessionData.planName} (${sessionData.billingMode})</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Amount (USD):</strong> $${sessionData.amountUsd}</div>
+              ${sessionData.paymentId ? `<div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;"><strong style="color:#ff8c42;">Payment ID:</strong> ${sessionData.paymentId}</div>` : ''}
+            </div>
+          </div>
         </body>
       </html>
     `;
@@ -512,19 +516,18 @@ class EmailService {
     const parentHtml = `
       <!DOCTYPE html>
       <html>
-        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
-          <h2 style="color: #ff6a00;">Session Enrollment Confirmed</h2>
-          <p>Dear ${sessionData.parentName},</p>
-          <p>
-            You have successfully subscribed to a session with VR Robotics Academy.
-          </p>
-          <p>
-            Our team will get in touch within the next 24 hours.
-          </p>
-          <p><strong>Plan:</strong> ${sessionData.planName} (${sessionData.billingMode})</p>
-          <p><strong>Amount:</strong> $${sessionData.amountUsd}</p>
-          ${sessionData.paymentId ? `<p><strong>Payment ID:</strong> ${sessionData.paymentId}</p>` : ''}
-          <p>Thank you,<br/>VR Robotics Academy Team</p>
+        <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
+          <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">Session Enrollment Confirmed</div>
+            <div style="padding:14px 18px;color:#b8b8b8;">Dear ${sessionData.parentName},</div>
+            <div style="padding:0 18px 10px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Plan Summary</div></div>
+            <div style="padding:0 18px 18px;">
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Plan:</strong> ${sessionData.planName} (${sessionData.billingMode})</div>
+              <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Amount:</strong> $${sessionData.amountUsd}</div>
+              ${sessionData.paymentId ? `<div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;"><strong style="color:#ff8c42;">Payment ID:</strong> ${sessionData.paymentId}</div>` : ''}
+            </div>
+            <div style="padding:0 18px 18px;color:#b8b8b8;">Our team will get in touch within the next 24 hours.</div>
+          </div>
         </body>
       </html>
     `;
