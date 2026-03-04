@@ -45,25 +45,32 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     console.log('[EmailAPI] Sending email to:', emailData.to);
+    const brevoPayload: Record<string, any> = {
+      sender: {
+        email: senderEmail,
+        name: senderName,
+      },
+      to: [{ email: emailData.to }],
+      subject: emailData.subject,
+      htmlContent: emailData.html,
+    };
+
+    const mappedAttachments = (emailData.attachments || []).map((attachment) => ({
+      name: attachment.filename,
+      content: attachment.content,
+    }));
+
+    if (mappedAttachments.length > 0) {
+      brevoPayload.attachment = mappedAttachments;
+    }
+
     const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'api-key': brevoApiKey,
       },
-      body: JSON.stringify({
-        sender: {
-          email: senderEmail,
-          name: senderName,
-        },
-        to: [{ email: emailData.to }],
-        subject: emailData.subject,
-        htmlContent: emailData.html,
-        attachment: (emailData.attachments || []).map((attachment) => ({
-          name: attachment.filename,
-          content: attachment.content,
-        })),
-      }),
+      body: JSON.stringify(brevoPayload),
     });
 
     const brevoData = await brevoResponse.json().catch(() => ({}));
