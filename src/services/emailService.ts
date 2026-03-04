@@ -16,6 +16,8 @@ interface EmailPayload {
 }
 
 class EmailService {
+  private static readonly LOGO_URL =
+    'https://res.cloudinary.com/dicfqwlfq/image/upload/v1764506603/logo_vc6lpc.png';
   private static readonly ADMIN_EMAIL =
     ((import.meta as any)?.env?.PUBLIC_ADMIN_EMAIL as string) ||
     ((import.meta as any)?.env?.VITE_ADMIN_EMAIL as string) || 'abhinavneeraj.bade@gmail.com';
@@ -343,6 +345,9 @@ class EmailService {
           </head>
           <body>
             <div class="container">
+              <div style="text-align:center; margin-bottom: 14px;">
+                <img src="${this.LOGO_URL}" alt="VR Robotics Academy" width="68" height="68" style="display:inline-block; border-radius:50%; border:2px solid #d4af37; background:#111;" />
+              </div>
               <div class="header">
                 <h1>🎉 New Demo Booking Request</h1>
                 <p>A new student has booked a demo session!</p>
@@ -448,6 +453,9 @@ class EmailService {
       <html>
         <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
           <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="text-align:center; padding:16px 18px 0;">
+              <img src="${this.LOGO_URL}" alt="VR Robotics Academy" width="64" height="64" style="display:inline-block; border-radius:50%; border:2px solid #d4af37; background:#111;" />
+            </div>
             <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">Demo Booking Confirmed</div>
             <div style="padding:14px 18px;color:#b8b8b8;">Dear ${demoData.parentName},</div>
             <div style="padding:0 18px 10px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Your Booking Details</div></div>
@@ -488,6 +496,9 @@ class EmailService {
       <html>
         <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
           <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="text-align:center; padding:16px 18px 0;">
+              <img src="${this.LOGO_URL}" alt="VR Robotics Academy" width="64" height="64" style="display:inline-block; border-radius:50%; border:2px solid #d4af37; background:#111;" />
+            </div>
             <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">New Session Enrollment (Paid)</div>
             <div style="padding:0 18px 10px;margin-top:14px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Enrollment Details</div></div>
             <div style="padding:0 18px 18px;">
@@ -518,6 +529,9 @@ class EmailService {
       <html>
         <body style="font-family: Arial, sans-serif; background:#0b0b0b; color:#f5f5f5; line-height: 1.6; padding:20px;">
           <div style="max-width:700px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;">
+            <div style="text-align:center; padding:16px 18px 0;">
+              <img src="${this.LOGO_URL}" alt="VR Robotics Academy" width="64" height="64" style="display:inline-block; border-radius:50%; border:2px solid #d4af37; background:#111;" />
+            </div>
             <div style="background:#ff6a00;color:#fff;padding:14px 18px;font-size:24px;font-weight:700;">Session Enrollment Confirmed</div>
             <div style="padding:14px 18px;color:#b8b8b8;">Dear ${sessionData.parentName},</div>
             <div style="padding:0 18px 10px;"><div style="background:#d4af37;color:#1b1b1b;padding:10px 12px;border-radius:6px;font-weight:700;">Plan Summary</div></div>
