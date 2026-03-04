@@ -61,12 +61,16 @@ interface ClientRegionContext {
 
   export class RazorpayService {
   private static readonly KEY_ID =
-    ((import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID as string) || '';
+    ((import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID as string) ||
+    ((import.meta as any)?.env?.PUBLIC_RAZORPAY_KEY_ID as string) ||
+    '';
   
   // Dedicated session payment key (for pricing page sessions)
   private static readonly SESSION_KEY_ID =
     ((import.meta as any)?.env?.VITE_RAZORPAY_SESSION_KEY_ID as string) ||
+    ((import.meta as any)?.env?.PUBLIC_RAZORPAY_SESSION_KEY_ID as string) ||
     ((import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID as string) ||
+    ((import.meta as any)?.env?.PUBLIC_RAZORPAY_KEY_ID as string) ||
     '';
   
   private static readonly SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -530,7 +534,7 @@ interface ClientRegionContext {
   static async initiatePayment(options: RazorpayOptions): Promise<void> {
     try {
       if (!this.KEY_ID) {
-        throw new Error('Missing VITE_RAZORPAY_KEY_ID. Configure it in your env file.');
+        throw new Error('Missing VITE_RAZORPAY_KEY_ID/PUBLIC_RAZORPAY_KEY_ID. Configure it in your env file.');
       }
 
       await this.loadRazorpayScript();
@@ -717,7 +721,7 @@ interface ClientRegionContext {
 
     try {
       if (!this.SESSION_KEY_ID) {
-        throw new Error('Missing VITE_RAZORPAY_SESSION_KEY_ID or VITE_RAZORPAY_KEY_ID. Configure it in your env file.');
+        throw new Error('Missing session Razorpay key. Set VITE_RAZORPAY_SESSION_KEY_ID or PUBLIC_RAZORPAY_SESSION_KEY_ID, or fallback key.');
       }
 
       await this.loadRazorpayScript();
