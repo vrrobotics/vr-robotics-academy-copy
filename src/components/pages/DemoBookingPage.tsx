@@ -66,25 +66,6 @@ export default function DemoBookingPage() {
     loadTeachers();
   }, [searchParams]);
 
-  // Restore previously entered demo booking details (used for Razorpay prefill)
-  useEffect(() => {
-    const saved = RazorpayService.getStoredDemoBookingDetails();
-    if (!saved || Object.keys(saved).length === 0) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      parentName: prev.parentName || saved.parentName || '',
-      email: prev.email || saved.email || '',
-      phone: prev.phone || saved.phone || '',
-      childName: prev.childName || saved.childName || '',
-      childAge: prev.childAge || saved.childAge || '',
-      preferredDate: prev.preferredDate || saved.preferredDate || '',
-      preferredTime: prev.preferredTime || saved.preferredTime || '',
-      interests: prev.interests || saved.interests || '',
-      message: prev.message || saved.message || ''
-    }));
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -194,6 +175,7 @@ export default function DemoBookingPage() {
       // If at least one method succeeded (ideally email or sheets), show success
       if (dbSuccess) {
         console.log('[DemoBooking] ✓ Booking submitted successfully via at least one method');
+        RazorpayService.clearStoredDemoBookingDetails();
         setSubmitted(true);
       } else {
         throw new Error('Booking could not be saved.');

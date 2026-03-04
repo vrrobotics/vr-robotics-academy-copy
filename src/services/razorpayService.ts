@@ -131,6 +131,15 @@ interface ClientRegionContext {
     }
   }
 
+  static clearStoredDemoBookingDetails(): void {
+    try {
+      if (typeof window === 'undefined') return;
+      window.localStorage.removeItem(this.DEMO_DETAILS_STORAGE_KEY);
+    } catch (error) {
+      console.warn('[Razorpay] Failed to clear demo booking details:', error);
+    }
+  }
+
   private static getSheetsSyncKey(paymentId: string): string {
     return `${this.SHEETS_SYNC_KEY_PREFIX}${paymentId}`;
   }
@@ -402,15 +411,11 @@ interface ClientRegionContext {
   }
 
   private static async ensureDemoBookingDetails(formConfig?: DemoDetailsFormConfig): Promise<DemoBookingDetails> {
-    const stored = this.getStoredDemoBookingDetails();
-    // Always open details form before payment so the user confirms current data.
-    const collected = await this.requestDemoDetailsFromUI(stored, formConfig);
-    const merged = {
-      ...stored,
-      ...(collected || {})
-    };
-    this.storeDemoBookingDetails(merged);
-    return merged;
+    // Always open with a fresh form so stale local data is never prefilled.
+    const collected = await this.requestDemoDetailsFromUI({}, formConfig);
+    const latest = collected || {};
+    this.storeDemoBookingDetails(latest);
+    return latest;
   }
 
   private static getClientRegionContext(): ClientRegionContext {
@@ -572,6 +577,7 @@ interface ClientRegionContext {
         image: 'https://res.cloudinary.com/dicfqwlfq/image/upload/v1764505259/VR_Robotics_Logo_upscaled_1_rrrrn8.png',
         handler: async (response: any) => {
           await this.syncPaidBookingToGoogleSheets(response);
+          this.clearStoredDemoBookingDetails();
           if (options.onSuccess) {
             options.onSuccess(response);
             return;
@@ -795,6 +801,7 @@ interface ClientRegionContext {
           console.log('[Razorpay] PAYMENT SUCCESS, attached notes:', response.razorpay_notes);
           try {
             await this.syncPaidBookingToGoogleSheets(response);
+            this.clearStoredDemoBookingDetails();
             if (options.onSuccess) {
               options.onSuccess(response);
               return;

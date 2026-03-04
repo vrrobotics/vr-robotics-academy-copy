@@ -15,6 +15,18 @@ interface DemoDetailsOpenPayload {
   formConfig?: DemoDetailsFormConfig;
 }
 
+const EMPTY_DEMO_DETAILS: DemoBookingDetails = {
+  parentName: '',
+  email: '',
+  phone: '',
+  childName: '',
+  childAge: '',
+  preferredDate: '',
+  preferredTime: '',
+  interests: '',
+  message: ''
+};
+
 // Lazy load page components for better performance
 const HomePage = lazy(() => import("@/components/pages/HomePage").catch(() => {
   return {
@@ -462,17 +474,7 @@ export default function AppRouter() {
   console.log("[Router] AppRouter mounted");
   const lastPathRef = useRef<string | null>(null);
   const [showDemoDetailsForm, setShowDemoDetailsForm] = useState(false);
-  const [demoDetails, setDemoDetails] = useState<DemoBookingDetails>({
-    parentName: '',
-    email: '',
-    phone: '',
-    childName: '',
-    childAge: '',
-    preferredDate: '',
-    preferredTime: '',
-    interests: '',
-    message: ''
-  });
+  const [demoDetails, setDemoDetails] = useState<DemoBookingDetails>(EMPTY_DEMO_DETAILS);
   const [demoFormConfig, setDemoFormConfig] = useState<Required<DemoDetailsFormConfig>>({
     title: 'Book Demo Details',
     subtitle: 'Fill the form and continue to payment.',
@@ -503,10 +505,10 @@ export default function AppRouter() {
           ? payload.formConfig || {}
           : {};
 
-      setDemoDetails((prev) => ({
-        ...prev,
+      setDemoDetails({
+        ...EMPTY_DEMO_DETAILS,
         ...(incomingDetails || {})
-      }));
+      });
       setDemoFormConfig({
         title: incomingFormConfig.title || 'Book Demo Details',
         subtitle: incomingFormConfig.subtitle || 'Fill the form and continue to payment.',
@@ -559,14 +561,17 @@ export default function AppRouter() {
 
   const handleCloseDemoForm = () => {
     setShowDemoDetailsForm(false);
+    setDemoDetails(EMPTY_DEMO_DETAILS);
     window.dispatchEvent(new CustomEvent('vr:demo-details-cancelled'));
   };
 
   const handleSubmitDemoForm = (e: FormEvent) => {
     e.preventDefault();
-    RazorpayService.storeDemoBookingDetails(demoDetails);
+    const submittedDetails = { ...demoDetails };
+    RazorpayService.storeDemoBookingDetails(submittedDetails);
     setShowDemoDetailsForm(false);
-    window.dispatchEvent(new CustomEvent('vr:demo-details-submitted', { detail: { details: demoDetails } }));
+    setDemoDetails(EMPTY_DEMO_DETAILS);
+    window.dispatchEvent(new CustomEvent('vr:demo-details-submitted', { detail: { details: submittedDetails } }));
   };
 
   return (
@@ -588,32 +593,59 @@ export default function AppRouter() {
             </div>
             <form onSubmit={handleSubmitDemoForm} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <input name="parentName" value={demoDetails.parentName || ''} onChange={handleDetailChange} required placeholder="Parent/Guardian Name" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
-                <input type="email" name="email" value={demoDetails.email || ''} onChange={handleDetailChange} required placeholder="Email Address" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                <div>
+                  <label htmlFor="demo-parentName" className="mb-2 block font-paragraph text-sm text-foreground/80">Parent/Guardian Name *</label>
+                  <input id="demo-parentName" name="parentName" value={demoDetails.parentName || ''} onChange={handleDetailChange} required placeholder="Parent/Guardian Name" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
+                <div>
+                  <label htmlFor="demo-email" className="mb-2 block font-paragraph text-sm text-foreground/80">Email Address *</label>
+                  <input id="demo-email" type="email" name="email" value={demoDetails.email || ''} onChange={handleDetailChange} required placeholder="Email Address" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <input name="phone" value={demoDetails.phone || ''} onChange={handleDetailChange} required placeholder="Phone Number" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
-                <input name="childName" value={demoDetails.childName || ''} onChange={handleDetailChange} required placeholder="Child's Name" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                <div>
+                  <label htmlFor="demo-phone" className="mb-2 block font-paragraph text-sm text-foreground/80">Phone Number *</label>
+                  <input id="demo-phone" name="phone" value={demoDetails.phone || ''} onChange={handleDetailChange} required placeholder="Phone Number" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
+                <div>
+                  <label htmlFor="demo-childName" className="mb-2 block font-paragraph text-sm text-foreground/80">Child's Name *</label>
+                  <input id="demo-childName" name="childName" value={demoDetails.childName || ''} onChange={handleDetailChange} required placeholder="Child's Name" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <select name="childAge" value={demoDetails.childAge || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground">
-                  <option value="">Child's Age</option>
-                  {[...Array(9)].map((_, i) => (
-                    <option key={i} value={8 + i}>{8 + i} years</option>
-                  ))}
-                </select>
-                <input type="date" name="preferredDate" value={demoDetails.preferredDate || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                <div>
+                  <label htmlFor="demo-childAge" className="mb-2 block font-paragraph text-sm text-foreground/80">Child's Age *</label>
+                  <select id="demo-childAge" name="childAge" value={demoDetails.childAge || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground">
+                    <option value="">Child's Age</option>
+                    {[...Array(9)].map((_, i) => (
+                      <option key={i} value={8 + i}>{8 + i} years</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="demo-preferredDate" className="mb-2 block font-paragraph text-sm text-foreground/80">Preferred Date *</label>
+                  <input id="demo-preferredDate" type="date" name="preferredDate" value={demoDetails.preferredDate || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <select name="preferredTime" value={demoDetails.preferredTime || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground">
-                  <option value="">Preferred Time</option>
-                  <option value="morning">Morning (9AM - 12PM)</option>
-                  <option value="afternoon">Afternoon (12PM - 3PM)</option>
-                  <option value="evening">Evening (3PM - 6PM)</option>
-                </select>
-                <input name="interests" value={demoDetails.interests || ''} onChange={handleDetailChange} placeholder="Interests (optional)" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                <div>
+                  <label htmlFor="demo-preferredTime" className="mb-2 block font-paragraph text-sm text-foreground/80">Preferred Time *</label>
+                  <select id="demo-preferredTime" name="preferredTime" value={demoDetails.preferredTime || ''} onChange={handleDetailChange} required className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground">
+                    <option value="">Preferred Time</option>
+                    <option value="morning">Morning (9AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 3PM)</option>
+                    <option value="evening">Evening (3PM - 6PM)</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="demo-interests" className="mb-2 block font-paragraph text-sm text-foreground/80">Interests (optional)</label>
+                  <input id="demo-interests" name="interests" value={demoDetails.interests || ''} onChange={handleDetailChange} placeholder="Interests (optional)" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+                </div>
               </div>
-              <textarea name="message" value={demoDetails.message || ''} onChange={handleDetailChange} rows={3} placeholder="Additional message (optional)" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+              <div>
+                <label htmlFor="demo-message" className="mb-2 block font-paragraph text-sm text-foreground/80">Additional Message (optional)</label>
+                <textarea id="demo-message" name="message" value={demoDetails.message || ''} onChange={handleDetailChange} rows={3} placeholder="Additional message (optional)" className="w-full px-4 py-3 rounded-lg bg-background/50 border border-foreground/20 text-foreground" />
+              </div>
               <button type="submit" className="w-full bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]">
                 {demoFormConfig.submitText}
               </button>
