@@ -465,7 +465,19 @@ class EmailService {
               <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Preferred Time:</strong> ${this.formatTimeSlot(demoData.preferredTime)}</div>
               ${demoData.paymentId ? `<div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;"><strong style="color:#ff8c42;">Payment ID:</strong> ${demoData.paymentId}</div>` : ''}
             </div>
-            <div style="padding:0 18px 18px;color:#b8b8b8;">Our team will get in touch within the next 24 hours to confirm your slot.</div>
+            <div style="padding:0 18px 18px;">
+              <div style="background:#111827;border:1px solid #2f3b4d;border-left:4px solid #d4af37;border-radius:8px;padding:14px;">
+                <div style="font-weight:700;color:#f8fafc;margin-bottom:6px;">What happens next</div>
+                <div style="color:#d1d5db;line-height:1.7;">
+                  Thank you for choosing VR Robotics Academy. Your demo request has been successfully received and our academic support team will personally contact you within the next <strong style="color:#ffffff;">24 hours</strong> to confirm your preferred schedule and guide you through the next steps.
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 18px 20px;">
+              <div style="background:#0f0f0f;border:1px solid #262626;border-radius:8px;padding:12px 14px;text-align:center;color:#ffb347;font-weight:700;letter-spacing:0.2px;">
+                Building Future Innovators with Robotics, AI, and Real-World Learning.
+              </div>
+            </div>
           </div>
         </body>
       </html>
@@ -540,7 +552,19 @@ class EmailService {
               <div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;margin-bottom:10px;"><strong style="color:#ff8c42;">Amount:</strong> $${sessionData.amountUsd}</div>
               ${sessionData.paymentId ? `<div style="background:#1b1b1b;border-left:4px solid #ff6a00;padding:10px;border-radius:6px;"><strong style="color:#ff8c42;">Payment ID:</strong> ${sessionData.paymentId}</div>` : ''}
             </div>
-            <div style="padding:0 18px 18px;color:#b8b8b8;">Our team will get in touch within the next 24 hours.</div>
+            <div style="padding:0 18px 18px;">
+              <div style="background:#111827;border:1px solid #2f3b4d;border-left:4px solid #d4af37;border-radius:8px;padding:14px;">
+                <div style="font-weight:700;color:#f8fafc;margin-bottom:6px;">What happens next</div>
+                <div style="color:#d1d5db;line-height:1.7;">
+                  Thank you for enrolling with VR Robotics Academy. Our team will contact you within the next <strong style="color:#ffffff;">24 hours</strong> with onboarding details, class schedule confirmation, and your session start guidance.
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 18px 20px;">
+              <div style="background:#0f0f0f;border:1px solid #262626;border-radius:8px;padding:12px 14px;text-align:center;color:#ffb347;font-weight:700;letter-spacing:0.2px;">
+                Building Future Innovators with Robotics, AI, and Real-World Learning.
+              </div>
+            </div>
           </div>
         </body>
       </html>
