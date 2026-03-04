@@ -1,7 +1,7 @@
 /**
  * Email Service
  * Handles sending emails for teacher registration and document submissions
- * Now using Gmail SMTP via API endpoint
+ * Uses /api/send-email (Brevo/Sendinblue on the server)
  */
 
 interface EmailPayload {
@@ -16,7 +16,8 @@ interface EmailPayload {
 }
 
 class EmailService {
-  private static readonly ADMIN_EMAIL = 'abhinavneeraj.bade@gmail.com';
+  private static readonly ADMIN_EMAIL =
+    ((import.meta as any)?.env?.VITE_ADMIN_EMAIL as string) || 'abhinavneeraj.bade@gmail.com';
   private static readonly API_ENDPOINT = '/api/send-email';
 
   /**
@@ -147,7 +148,7 @@ class EmailService {
   }
 
   /**
-   * Send email via Gmail SMTP API endpoint
+   * Send email via backend email API endpoint
    */
   private static async sendEmailViaGmail(payload: EmailPayload): Promise<{
     success: boolean;
@@ -155,7 +156,7 @@ class EmailService {
     error?: string;
   }> {
     try {
-      console.log('[EmailService] ===== EMAIL SEND ATTEMPT (GMAIL SMTP) =====');
+      console.log('[EmailService] ===== EMAIL SEND ATTEMPT =====');
       console.log('[EmailService] To:', payload.to);
       console.log('[EmailService] Subject:', payload.subject);
       console.log('[EmailService] Calling API endpoint:', this.API_ENDPOINT);
@@ -169,6 +170,7 @@ class EmailService {
           to: payload.to,
           subject: payload.subject,
           html: payload.html,
+          attachments: payload.attachments || [],
         }),
       });
 
@@ -184,7 +186,7 @@ class EmailService {
         };
       }
 
-      console.log('[EmailService] ✓✓✓ Email sent successfully via Gmail SMTP!');
+      console.log('[EmailService] ✓✓✓ Email sent successfully!');
       console.log('[EmailService] Message ID:', data.messageId);
       console.log('[EmailService] ===== EMAIL SEND SUCCESS =====');
 
@@ -420,6 +422,108 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Failed to send demo booking email',
       };
     }
+  }
+
+  static async sendDemoBookingNotifications(demoData: {
+    parentName: string;
+    parentEmail: string;
+    parentPhone: string;
+    childName: string;
+    childAge: number;
+    preferredDate: string;
+    preferredTime: string;
+    interests?: string;
+    message?: string;
+    paymentId?: string;
+  }): Promise<void> {
+    await this.sendDemoBookingEmail(demoData);
+
+    const parentHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+          <h2 style="color: #ff6a00;">Demo Booking Confirmed</h2>
+          <p>Dear ${demoData.parentName},</p>
+          <p>
+            You have successfully subscribed to a demo session with VR Robotics Academy.
+          </p>
+          <p>
+            Our team will get in touch within the next 24 hours to confirm your slot.
+          </p>
+          <p><strong>Child:</strong> ${demoData.childName}</p>
+          <p><strong>Preferred Date:</strong> ${demoData.preferredDate}</p>
+          <p><strong>Preferred Time:</strong> ${this.formatTimeSlot(demoData.preferredTime)}</p>
+          ${demoData.paymentId ? `<p><strong>Payment ID:</strong> ${demoData.paymentId}</p>` : ''}
+          <p>Thank you,<br/>VR Robotics Academy Team</p>
+        </body>
+      </html>
+    `;
+
+    await this.simulateEmailSend({
+      to: demoData.parentEmail,
+      subject: 'Demo Booking Confirmed - VR Robotics Academy',
+      html: parentHtml,
+    });
+  }
+
+  static async sendSessionEnrollmentNotifications(sessionData: {
+    parentName: string;
+    parentEmail: string;
+    parentPhone?: string;
+    studentName: string;
+    planName: string;
+    billingMode: 'session' | 'month';
+    amountUsd: number;
+    paymentId?: string;
+  }): Promise<void> {
+    const adminHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+          <h2 style="color: #ff6a00;">New Session Enrollment (Paid)</h2>
+          <p><strong>Parent Name:</strong> ${sessionData.parentName}</p>
+          <p><strong>Parent Email:</strong> ${sessionData.parentEmail}</p>
+          <p><strong>Parent Phone:</strong> ${sessionData.parentPhone || '-'}</p>
+          <p><strong>Student Name:</strong> ${sessionData.studentName}</p>
+          <p><strong>Plan:</strong> ${sessionData.planName}</p>
+          <p><strong>Billing Mode:</strong> ${sessionData.billingMode}</p>
+          <p><strong>Amount (USD):</strong> ${sessionData.amountUsd}</p>
+          ${sessionData.paymentId ? `<p><strong>Payment ID:</strong> ${sessionData.paymentId}</p>` : ''}
+        </body>
+      </html>
+    `;
+
+    await this.simulateEmailSend({
+      to: this.ADMIN_EMAIL,
+      subject: `New Session Enrollment: ${sessionData.studentName}`,
+      html: adminHtml,
+    });
+
+    const parentHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+          <h2 style="color: #ff6a00;">Session Enrollment Confirmed</h2>
+          <p>Dear ${sessionData.parentName},</p>
+          <p>
+            You have successfully subscribed to a session with VR Robotics Academy.
+          </p>
+          <p>
+            Our team will get in touch within the next 24 hours.
+          </p>
+          <p><strong>Plan:</strong> ${sessionData.planName} (${sessionData.billingMode})</p>
+          <p><strong>Amount:</strong> $${sessionData.amountUsd}</p>
+          ${sessionData.paymentId ? `<p><strong>Payment ID:</strong> ${sessionData.paymentId}</p>` : ''}
+          <p>Thank you,<br/>VR Robotics Academy Team</p>
+        </body>
+      </html>
+    `;
+
+    await this.simulateEmailSend({
+      to: sessionData.parentEmail,
+      subject: 'Session Enrollment Confirmed - VR Robotics Academy',
+      html: parentHtml,
+    });
   }
 
   /**

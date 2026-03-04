@@ -4,6 +4,11 @@ interface EmailRequest {
   to: string;
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string; // base64 encoded
+    contentType?: string;
+  }>;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -17,7 +22,6 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const emailData: EmailRequest = await request.json();
 
-    // Validate email data
     if (!emailData.to || !emailData.subject || !emailData.html) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: to, subject, html' }),
@@ -25,55 +29,65 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Get Gmail credentials from environment
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailPassword = process.env.GMAIL_APP_PASSWORD;
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.BREVO_SENDER_EMAIL;
+    const senderName = process.env.BREVO_SENDER_NAME || 'VR Robotics Academy';
 
-    if (!gmailUser || !gmailPassword) {
-      console.error('[EmailAPI] Gmail credentials not configured');
+    if (!brevoApiKey || !senderEmail) {
+      console.error('[EmailAPI] Brevo credentials not configured');
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
+          success: false,
           error: 'Email service not configured',
-          success: false 
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Use dynamic import for nodemailer (server-side only)
-    const nodemailer = await import('nodemailer');
-
-    // Create transporter
-    const transporter = nodemailer.default.createTransport({
-      service: 'gmail',
-      auth: {
-        user: gmailUser,
-        pass: gmailPassword,
-      },
-    });
-
-    // Send email
     console.log('[EmailAPI] Sending email to:', emailData.to);
-    const info = await transporter.sendMail({
-      from: gmailUser,
-      to: emailData.to,
-      subject: emailData.subject,
-      html: emailData.html,
+    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': brevoApiKey,
+      },
+      body: JSON.stringify({
+        sender: {
+          email: senderEmail,
+          name: senderName,
+        },
+        to: [{ email: emailData.to }],
+        subject: emailData.subject,
+        htmlContent: emailData.html,
+        attachment: (emailData.attachments || []).map((attachment) => ({
+          name: attachment.filename,
+          content: attachment.content,
+        })),
+      }),
     });
 
-    console.log('[EmailAPI] ✓ Email sent successfully');
-    console.log('[EmailAPI] Message ID:', info.messageId);
+    const brevoData = await brevoResponse.json().catch(() => ({}));
+    if (!brevoResponse.ok) {
+      console.error('[EmailAPI] Brevo API error:', brevoData);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: brevoData?.message || 'Failed to send email via Brevo',
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[EmailAPI] Email sent successfully via Brevo');
+    console.log('[EmailAPI] Message ID:', brevoData?.messageId);
 
     return new Response(
       JSON.stringify({
         success: true,
-        messageId: info.messageId,
+        messageId: brevoData?.messageId,
         message: 'Email sent successfully',
       }),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('[EmailAPI] Error sending email:', error);
@@ -82,10 +96,7 @@ export const POST: APIRoute = async ({ request }) => {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to send email',
       }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 };

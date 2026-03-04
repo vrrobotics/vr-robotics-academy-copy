@@ -5,6 +5,7 @@
 
 import { GoogleSheetsService } from '@/services/googleSheetsService';
 import { BaseCrudService } from '@/integrations';
+import { EmailService } from '@/services/emailService';
 
 interface RazorpayOptions {
   amount: number; // Amount in minor units of `currency` (e.g. 100 cents = USD 1)
@@ -191,6 +192,24 @@ export class RazorpayService {
         console.log('[Razorpay] Demo booking saved to Supabase:', demoRecord._id);
       }
 
+      try {
+        await EmailService.sendDemoBookingNotifications({
+          parentName: details.parentName || '',
+          parentEmail: details.email || '',
+          parentPhone: details.phone || '',
+          childName: details.childName || '',
+          childAge: details.childAge ? parseInt(details.childAge, 10) : 0,
+          preferredDate: details.preferredDate || '',
+          preferredTime: details.preferredTime || '',
+          interests: details.interests || '',
+          message: details.message || '',
+          paymentId
+        });
+        console.log('[Razorpay] Demo booking emails sent (admin + parent)');
+      } catch (emailError) {
+        console.warn('[Razorpay] Demo booking email send failed:', emailError);
+      }
+
       const result = await GoogleSheetsService.appendDemoBooking({
         parentName: details.parentName || '',
         parentEmail: details.email || '',
@@ -251,6 +270,21 @@ export class RazorpayService {
 
       await BaseCrudService.create('sessionenrollments', enrollmentRecord);
       console.log('[Razorpay] Session enrollment saved to Supabase:', enrollmentRecord._id);
+      try {
+        await EmailService.sendSessionEnrollmentNotifications({
+          parentName: details.parentName || 'Parent',
+          parentEmail: details.email || 'unknown@example.com',
+          parentPhone: details.phone || '',
+          studentName: details.childName || details.parentName || 'Student',
+          planName: notes.plan_name || 'Unknown Plan',
+          billingMode: ((notes.billing_mode as 'session' | 'month') || 'session'),
+          amountUsd: parseFloat(notes.amount_usd) || 0,
+          paymentId
+        });
+        console.log('[Razorpay] Session enrollment emails sent (admin + parent)');
+      } catch (emailError) {
+        console.warn('[Razorpay] Session enrollment email send failed:', emailError);
+      }
       console.log('[Razorpay] 🚀 Starting pricing enrollment sync to Google Sheets:', {
         paymentId,
         planName: notes.plan_name,

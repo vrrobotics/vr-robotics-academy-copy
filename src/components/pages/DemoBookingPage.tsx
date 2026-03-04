@@ -5,7 +5,6 @@ import { Calendar, Clock, Users, CheckCircle, Award, Lightbulb, Heart } from 'lu
 import { Image } from '@/components/ui/image';
 import { BaseCrudService } from '@/integrations';
 import { DemoSessions, TeacherApprovals } from '@/entities';
-import { EmailService } from '@/services/emailService';
 import { GoogleSheetsService } from '@/services/googleSheetsService';
 import RazorpayService from '@/services/razorpayService';
 import Footer from '@/components/Footer';
@@ -148,32 +147,6 @@ export default function DemoBookingPage() {
       } catch (dbErr) {
         console.error('[DemoBooking] Database save failed after payment:', dbErr);
         throw new Error('Payment completed but booking could not be saved to database. Please contact support with your payment ID.');
-      }
-
-      // ✅ Send email notification to admin with student information
-      console.log('[DemoBooking] Sending email notification to admin...');
-      let emailSuccess = false;
-      try {
-        const emailResult = await EmailService.sendDemoBookingEmail({
-          parentName: formData.parentName,
-          parentEmail: formData.email,
-          parentPhone: formData.phone,
-          childName: formData.childName,
-          childAge: formData.childAge ? parseInt(formData.childAge) : 0,
-          preferredDate: formData.preferredDate,
-          preferredTime: formData.preferredTime,
-          interests: formData.interests,
-          message: formData.message
-        });
-
-        if (emailResult.success) {
-          console.log('[DemoBooking] ✓ Email notification sent successfully');
-          emailSuccess = true;
-        } else {
-          console.warn('[DemoBooking] ⚠ Email notification failed:', emailResult.error);
-        }
-      } catch (emailErr) {
-        console.warn('[DemoBooking] ⚠ Email operation failed:', emailErr);
       }
 
       // ✅ Append booking to Google Sheet for real-time tracking
