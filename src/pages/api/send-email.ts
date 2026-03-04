@@ -73,6 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           success: false,
           error: brevoData?.message || 'Failed to send email via Brevo',
+          details: brevoData,
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );

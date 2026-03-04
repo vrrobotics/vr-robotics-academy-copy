@@ -17,6 +17,7 @@ interface EmailPayload {
 
 class EmailService {
   private static readonly ADMIN_EMAIL =
+    ((import.meta as any)?.env?.PUBLIC_ADMIN_EMAIL as string) ||
     ((import.meta as any)?.env?.VITE_ADMIN_EMAIL as string) || 'abhinavneeraj.bade@gmail.com';
   private static readonly API_ENDPOINT = '/api/send-email';
 
@@ -436,7 +437,10 @@ class EmailService {
     message?: string;
     paymentId?: string;
   }): Promise<void> {
-    await this.sendDemoBookingEmail(demoData);
+    const adminResult = await this.sendDemoBookingEmail(demoData);
+    if (!adminResult.success) {
+      throw new Error(adminResult.error || 'Failed to send demo booking email to admin');
+    }
 
     const parentHtml = `
       <!DOCTYPE html>
@@ -459,11 +463,14 @@ class EmailService {
       </html>
     `;
 
-    await this.simulateEmailSend({
+    const parentResult = await this.simulateEmailSend({
       to: demoData.parentEmail,
       subject: 'Demo Booking Confirmed - VR Robotics Academy',
       html: parentHtml,
     });
+    if (!parentResult.success) {
+      throw new Error(parentResult.error || 'Failed to send demo booking email to parent');
+    }
   }
 
   static async sendSessionEnrollmentNotifications(sessionData: {
@@ -493,11 +500,14 @@ class EmailService {
       </html>
     `;
 
-    await this.simulateEmailSend({
+    const adminResult = await this.simulateEmailSend({
       to: this.ADMIN_EMAIL,
       subject: `New Session Enrollment: ${sessionData.studentName}`,
       html: adminHtml,
     });
+    if (!adminResult.success) {
+      throw new Error(adminResult.error || 'Failed to send session enrollment email to admin');
+    }
 
     const parentHtml = `
       <!DOCTYPE html>
@@ -519,11 +529,14 @@ class EmailService {
       </html>
     `;
 
-    await this.simulateEmailSend({
+    const parentResult = await this.simulateEmailSend({
       to: sessionData.parentEmail,
       subject: 'Session Enrollment Confirmed - VR Robotics Academy',
       html: parentHtml,
     });
+    if (!parentResult.success) {
+      throw new Error(parentResult.error || 'Failed to send session enrollment email to parent');
+    }
   }
 
   /**
