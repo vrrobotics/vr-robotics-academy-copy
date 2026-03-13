@@ -1,0 +1,1 @@
+import{c as l}from"./react.C8ggIjlB.js";const i=l(u=>({user:null,isAuthenticated:!1,isLoading:!1,login:e=>u({user:e,isAuthenticated:!0}),logout:()=>u({user:null,isAuthenticated:!1}),setLoading:e=>u({isLoading:e}),updateProfilePicture:e=>u(r=>({user:r.user?{...r.user,profilePicture:e}:null})),updateUserProfile:e=>u(r=>({user:r.user?{...r.user,...e}:null}))}));export{i as u};

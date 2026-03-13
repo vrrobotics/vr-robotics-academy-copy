@@ -1,0 +1,1 @@
+import"./index.CfTCg2BY.js";const e=(t,n)=>{typeof window<"u"&&window.gtag&&window.gtag("event",t,n||{})},a=(t,n)=>{e(t,{value:n||0,currency:"USD",timestamp:new Date().toISOString()})};export{a,e as t};
