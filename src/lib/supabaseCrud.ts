@@ -66,69 +66,24 @@ export class SupabaseCrudService {
   }
 
   /**
-   * Converts camelCase field names to lowercase for studentapprovals/teacherapprovals tables
+   * Converts field names for studentapprovals/teacherapprovals tables
+   * Note: These tables use camelCase, not lowercase (unlike the users table)
+   * So we only pass through the data as-is
    */
   private static convertApprovalFieldNames(record: any): any {
-    if (!record) return record;
-    
-    const fieldMappings: Record<string, string> = {
-      fullName: 'fullname',
-      studentEmail: 'studentemail',
-      studentApprovalData: 'studentapprovaldata',
-      teacherEmail: 'teacheremail',
-      teacherFullName: 'teacherfullname',
-      teacherPhoneNumber: 'teacherphonenumber',
-      phoneNumber: 'phonenumber',
-      submissionDate: 'submissiondate',
-      approvalDate: 'approvaldate',
-      approvedByAdmin: 'approvedbyadmin',
-      rejectionReason: 'rejectionreason',
-      approvalStatus: 'approvalstatus',
-      submittedDocumentNames: 'submitteddocumentnames',
-      submittedDocuments: 'submitteddocuments',
-      _createdDate: '_createddate',
-      _updatedDate: '_updateddate'
-    };
-
-    const converted: any = {};
-    for (const [key, value] of Object.entries(record)) {
-      const mappedKey = fieldMappings[key] || key;
-      converted[mappedKey] = value;
-    }
-    return converted;
+    // studentapprovals and teacherapprovals use camelCase in the schema
+    // no conversion needed - return as-is
+    return record;
   }
 
   /**
-   * Converts lowercase field names back to camelCase for studentapprovals/teacherapprovals tables
+   * Converts field names back for studentapprovals/teacherapprovals tables
+   * Note: These tables use camelCase, so no conversion needed
    */
   private static convertApprovalFieldNamesFromDB(record: any): any {
-    if (!record) return record;
-    
-    const fieldMappings: Record<string, string> = {
-      fullname: 'fullName',
-      studentemail: 'studentEmail',
-      studentapprovaldata: 'studentApprovalData',
-      teacheremail: 'teacherEmail',
-      teacherfullname: 'teacherFullName',
-      teacherphonenumber: 'teacherPhoneNumber',
-      phonenumber: 'phoneNumber',
-      submissiondate: 'submissionDate',
-      approvaldate: 'approvalDate',
-      approvedbyadmin: 'approvedByAdmin',
-      rejectionreason: 'rejectionReason',
-      approvalstatus: 'approvalStatus',
-      submitteddocumentnames: 'submittedDocumentNames',
-      submitteddocuments: 'submittedDocuments',
-      _createddate: '_createdDate',
-      _updateddate: '_updatedDate'
-    };
-
-    const converted: any = {};
-    for (const [key, value] of Object.entries(record)) {
-      const mappedKey = fieldMappings[key] || key;
-      converted[mappedKey] = value;
-    }
-    return converted;
+    // studentapprovals and teacherapprovals use camelCase in the schema
+    // no conversion needed - return as-is
+    return record;
   }
 
   /**
