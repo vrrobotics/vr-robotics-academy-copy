@@ -57,8 +57,8 @@ export default function BatchManagementModal({
         }
         
         const approved = items.filter(item => {
-          const isApproved = item.approvalStatus === 'approved';
-          console.log(`[BatchManagementModal] Teacher: ${item.teacherFullName}, Status: "${item.approvalStatus}", Is Approved: ${isApproved}`);
+          const isApproved = item.status === 'approved';
+          console.log(`[BatchManagementModal] Teacher: ${item.fullName}, Status: "${item.status}", Is Approved: ${isApproved}`);
           return isApproved;
         });
         
@@ -388,8 +388,8 @@ export default function BatchManagementModal({
                   {approvedTeachers.length === 0 ? 'No approved teachers' : 'Select a teacher'}
                 </option>
                 {approvedTeachers.map((teacher) => (
-                  <option key={teacher._id} value={teacher.teacherFullName || ''} className="bg-gray-700 text-white">
-                    {teacher.teacherFullName || 'Unnamed Teacher'}
+                  <option key={teacher._id} value={teacher.fullName || ''} className="bg-gray-700 text-white">
+                    {teacher.fullName || 'Unnamed Teacher'}
                   </option>
                 ))}
               </select>

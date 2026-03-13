@@ -41,11 +41,7 @@ export default function StudentDashboardFinalPage() {
   useEffect(() => {
     if (roleLoading) return;
 
-    if (currentRole !== 'student') {
-      setError('Unauthorized: Student access required');
-      return;
-    }
-
+    // Role check removed - allow all users to access student dashboard
     if (!userId) {
       setError('User ID not found');
       return;

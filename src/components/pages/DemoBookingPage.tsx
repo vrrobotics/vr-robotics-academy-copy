@@ -53,7 +53,7 @@ export default function DemoBookingPage() {
       try {
         console.log('[DemoBooking] Loading approved teachers...');
         const { items } = await BaseCrudService.getAll<TeacherApprovals>('teacherapprovals');
-        const approvedTeachers = items?.filter(t => t.approvalStatus === 'approved') || [];
+        const approvedTeachers = items?.filter(t => t.status === 'approved') || [];
         console.log(`[DemoBooking] ✓ Loaded ${approvedTeachers.length} approved teachers`);
         setTeachers(approvedTeachers);
       } catch (err) {

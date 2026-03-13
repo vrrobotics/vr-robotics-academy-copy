@@ -179,7 +179,12 @@ class EmailService {
 
       console.log('[EmailService] Response status:', response.status);
 
-      const data = await response.json();
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         console.error('[EmailService] ✗ Error from API:', data);

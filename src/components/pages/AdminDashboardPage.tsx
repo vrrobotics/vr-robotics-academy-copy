@@ -82,7 +82,8 @@ export default function AdminDashboardPage() {
   });
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
+    // Role check removed - allow all users to access admin dashboard
+    if (!user) {
       navigate('/login');
     }
     

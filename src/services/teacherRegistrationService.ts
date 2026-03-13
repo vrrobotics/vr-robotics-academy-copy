@@ -40,18 +40,17 @@ class TeacherRegistrationService {
         throw new Error('Email already registered. Please log in instead.');
       }
 
-      // Create new teacher user
+      // Create new teacher user with a guaranteed fullName
+      const safeFullName = (signupData.fullName || '').trim() || signupData.email.split('@')[0];
       const newTeacher: Users = {
         _id: crypto.randomUUID(),
-        fullName: signupData.fullName,
+        fullName: safeFullName,
         email: signupData.email,
         role: 'teacher',
         phoneNumber: signupData.phoneNumber,
-        department: signupData.department || 'STEM Education',
-        joinDate: new Date(),
       };
 
-      // Save to database
+      // Save to database (field names will be converted automatically by SupabaseCrudService)
       await BaseCrudService.create<Users>('users', newTeacher);
 
       console.log('[TeacherRegistrationService] ✓ Teacher registered successfully:', newTeacher.email);

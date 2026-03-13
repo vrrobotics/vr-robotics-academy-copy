@@ -38,30 +38,18 @@ export default function TeacherDashboardPage() {
   const [teacherAssignments, setTeacherAssignments] = useState<TeacherAssignments[]>([]);
 
   // ============================================================================
-  // STEP 1: VALIDATE ROLE ON LOAD - Redirect non-teachers to /teacher-login
+  // STEP 1: BASIC USER CHECK (Role check removed to allow all users)
   // ============================================================================
   useEffect(() => {
-    console.log('[TeacherDashboardPage] Component mounted - Starting role validation');
+    console.log('[TeacherDashboardPage] Component mounted');
     
+    // Role validation removed - allow all users to access teacher dashboard
     if (!user) {
-      console.warn('[TeacherDashboardPage] No user found - Redirecting to /teacher-login');
-      navigate('/teacher-login', { replace: true });
+      console.warn('[TeacherDashboardPage] No user found');
       return;
     }
 
-    if (!user.id || !user.role) {
-      console.error('[TeacherDashboardPage] User missing required fields:', { id: user.id, role: user.role });
-      navigate('/teacher-login', { replace: true });
-      return;
-    }
-
-    if (user.role !== 'teacher') {
-      console.warn(`[TeacherDashboardPage] User role is not 'teacher': ${user.role} - Redirecting to /teacher-login`);
-      navigate('/teacher-login', { replace: true });
-      return;
-    }
-
-    console.log(`[TeacherDashboardPage] ✓ Role validation passed - teacherId: ${user.id}, role: ${user.role}, name: ${user.fullName}`);
+    console.log(`[TeacherDashboardPage] ✓ User allowed - userId: ${user.id}, name: ${user.fullName}`);
   }, [user, navigate]);
 
   // ============================================================================

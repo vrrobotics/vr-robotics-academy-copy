@@ -34,17 +34,17 @@ export default function TeacherApprovalPage() {
   };
 
   const handleApprove = async (approval: TeacherApprovalRecord) => {
-    if (!approval.teacherEmail) return;
+    if (!approval.email) return;
 
     setIsProcessing(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      console.log('[TeacherApprovalPage] Approving teacher:', approval.teacherEmail);
+      console.log('[TeacherApprovalPage] Approving teacher:', approval.email);
 
       // Approve in database
-      await TeacherApprovalService.approveTeacher(approval.teacherEmail, 'admin');
+      await TeacherApprovalService.approveTeacher(approval.email, 'admin');
 
       // Send approval email to teacher
       const approvalEmailHtml = `
@@ -69,7 +69,7 @@ export default function TeacherApprovalPage() {
               
               <div class="content">
                 <p class="message">
-                  Dear ${approval.teacherFullName},<br><br>
+                  Dear ${approval.fullName},<br><br>
                   Congratulations! Your teacher registration with VR Robotics Academy has been <strong>approved</strong>.<br><br>
                   You can now log in to your teacher portal and start managing your classes.<br><br>
                   <a href="${window.location.origin}/login" class="button">Log In to Your Account</a><br><br>
@@ -95,7 +95,7 @@ export default function TeacherApprovalPage() {
         },
         body: JSON.stringify({
           from: 'admin@vrrroboticsacademy.com',
-          to: approval.teacherEmail,
+          to: approval.email,
           subject: 'Registration Approved - Welcome to VR Robotics Academy',
           html: approvalEmailHtml,
         }),
@@ -104,7 +104,7 @@ export default function TeacherApprovalPage() {
         console.log('[TeacherApprovalPage] Email notification sent (or simulated)');
       });
 
-      setSuccessMessage(`✓ Teacher ${approval.teacherFullName} has been approved and granted portal access!`);
+      setSuccessMessage(`✓ Teacher ${approval.fullName} has been approved and granted portal access!`);
       
       // Reload approvals
       setTimeout(() => {
@@ -120,7 +120,7 @@ export default function TeacherApprovalPage() {
   };
 
   const handleReject = async (approval: TeacherApprovalRecord) => {
-    if (!approval.teacherEmail) {
+    if (!approval.email) {
       setErrorMessage('Unable to process rejection');
       return;
     }
@@ -130,10 +130,10 @@ export default function TeacherApprovalPage() {
     setSuccessMessage('');
 
     try {
-      console.log('[TeacherApprovalPage] Rejecting and deleting teacher record:', approval.teacherEmail);
+      console.log('[TeacherApprovalPage] Rejecting and deleting teacher record:', approval.email);
 
       // Reject and permanently delete the record
-      await TeacherApprovalService.rejectTeacher(approval.teacherEmail, 'Rejected by admin', 'admin');
+      await TeacherApprovalService.rejectTeacher(approval.email, 'Rejected by admin', 'admin');
 
       // Send rejection email to teacher
       const rejectionEmailHtml = `
@@ -157,7 +157,7 @@ export default function TeacherApprovalPage() {
               
               <div class="content">
                 <p class="message">
-                  Dear ${approval.teacherFullName},<br><br>
+                  Dear ${approval.fullName},<br><br>
                   Thank you for applying to VR Robotics Academy. After reviewing your application and documents, we regret to inform you that your registration has not been approved at this time.<br><br>
                   If you believe this is a mistake or would like to reapply with additional information, please contact us.<br><br>
                   Best regards,<br>
@@ -181,7 +181,7 @@ export default function TeacherApprovalPage() {
         },
         body: JSON.stringify({
           from: 'admin@vrrroboticsacademy.com',
-          to: approval.teacherEmail,
+          to: approval.email,
           subject: 'Registration Status - VR Robotics Academy',
           html: rejectionEmailHtml,
         }),
@@ -189,7 +189,7 @@ export default function TeacherApprovalPage() {
         console.log('[TeacherApprovalPage] Rejection email sent (or simulated)');
       });
 
-      setSuccessMessage(`✓ Teacher ${approval.teacherFullName}'s record has been permanently deleted.`);
+      setSuccessMessage(`✓ Teacher ${approval.fullName}'s record has been permanently deleted.`);
       
       // Reload approvals
       setTimeout(() => {
@@ -206,7 +206,7 @@ export default function TeacherApprovalPage() {
 
   const filteredApprovals = approvals.filter(approval => {
     if (filter === 'all') return true;
-    return approval.approvalStatus === 'pending';
+    return approval.status === 'pending';
   });
 
   const getStatusColor = (status?: string) => {
@@ -319,21 +319,21 @@ export default function TeacherApprovalPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-heading text-lg">{approval.teacherFullName}</h3>
-                      <div className={`px-3 py-1 rounded-full text-xs font-heading flex items-center gap-1 border ${getStatusColor(approval.approvalStatus)}`}>
-                        {getStatusIcon(approval.approvalStatus)}
-                        {approval.approvalStatus}
+                      <h3 className="font-heading text-lg">{approval.fullName}</h3>
+                      <div className={`px-3 py-1 rounded-full text-xs font-heading flex items-center gap-1 border ${getStatusColor(approval.status)}`}>
+                        {getStatusIcon(approval.status)}
+                        {approval.status}
                       </div>
                     </div>
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center gap-2 text-foreground/70">
                         <Mail className="w-4 h-4" />
-                        {approval.teacherEmail}
+                        {approval.email}
                       </div>
-                      {approval.teacherPhoneNumber && (
+                      {approval.phoneNumber && (
                         <div className="flex items-center gap-2 text-foreground/70">
                           <Phone className="w-4 h-4" />
-                          {approval.teacherPhoneNumber}
+                          {approval.phoneNumber}
                         </div>
                       )}
                       {approval.submittedDocumentNames && (
@@ -370,10 +370,10 @@ export default function TeacherApprovalPage() {
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="font-heading text-2xl mb-2">{selectedApproval.teacherFullName}</h2>
-                  <div className={`inline-flex px-3 py-1 rounded-full text-sm font-heading items-center gap-2 border ${getStatusColor(selectedApproval.approvalStatus)}`}>
-                    {getStatusIcon(selectedApproval.approvalStatus)}
-                    {selectedApproval.approvalStatus}
+                  <h2 className="font-heading text-2xl mb-2">{selectedApproval.fullName}</h2>
+                  <div className={`inline-flex px-3 py-1 rounded-full text-sm font-heading items-center gap-2 border ${getStatusColor(selectedApproval.status)}`}>
+                    {getStatusIcon(selectedApproval.status)}
+                    {selectedApproval.status}
                   </div>
                 </div>
                 <button
@@ -388,12 +388,12 @@ export default function TeacherApprovalPage() {
               <div className="space-y-4 mb-8">
                 <div>
                   <p className="font-heading text-sm text-foreground/70 mb-1">Email</p>
-                  <p className="font-paragraph">{selectedApproval.teacherEmail}</p>
+                  <p className="font-paragraph">{selectedApproval.email}</p>
                 </div>
-                {selectedApproval.teacherPhoneNumber && (
+                {selectedApproval.phoneNumber && (
                   <div>
                     <p className="font-heading text-sm text-foreground/70 mb-1">Phone</p>
-                    <p className="font-paragraph">{selectedApproval.teacherPhoneNumber}</p>
+                    <p className="font-paragraph">{selectedApproval.phoneNumber}</p>
                   </div>
                 )}
                 {selectedApproval.submittedDocumentNames && (

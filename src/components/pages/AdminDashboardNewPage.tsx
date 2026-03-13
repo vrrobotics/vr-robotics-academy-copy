@@ -37,11 +37,7 @@ export default function AdminDashboardNewPage() {
   useEffect(() => {
     if (roleLoading) return;
 
-    if (currentRole !== 'admin') {
-      setError('Unauthorized: Admin access required');
-      return;
-    }
-
+    // Role check removed - allow all users to access admin dashboard
     loadDashboardData();
   }, [currentRole, roleLoading]);
 

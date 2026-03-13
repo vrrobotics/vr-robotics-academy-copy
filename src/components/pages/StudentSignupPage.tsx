@@ -81,7 +81,6 @@ export default function StudentSignupPage() {
         phoneNumber: formData.phoneNumber,
         age: parseInt(formData.age),
         gender: formData.gender,
-        password: formData.password,
         submissionDate: new Date(),
         status: 'pending',
       };

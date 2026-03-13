@@ -46,8 +46,7 @@ export default function Header() {
     { name: 'Certificates', path: '/certificates' },
     { name: 'Admission', path: '/admission-process' },
     { name: 'Pricing', path: '/program-fees' },
-    { name: 'Contact', path: '/contact' },
-    ...(user && user.role === 'teacher' ? [{ name: 'Teacher Dashboard', path: '/teacher-dashboard' }] : [])
+    { name: 'Contact', path: '/contact' }
   ];
 
   return (
@@ -135,22 +134,24 @@ export default function Header() {
         </nav>
 
         {/* CTA Buttons - Right */}
-        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+        <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
           {user ? (
             <>
+              {/* Admin Notification Bell - Only for Admin */}
               {user.role === 'admin' && (
                 <Link to="/admin-notifications">
                   <motion.button
                     className="relative p-2 rounded-lg text-foreground hover:bg-primary/10 transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
+                    title="Admin Notifications"
                   >
-                    <Bell className="w-6 h-6" />
+                    <Bell className="w-5 h-5" />
                     {unreadCount > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                        className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center"
                       >
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </motion.span>
@@ -158,33 +159,80 @@ export default function Header() {
                   </motion.button>
                 </Link>
               )}
+
+              {/* Role-based Dashboard Button */}
               {user.role === 'student' && (
-                <Link to="/student-upcoming-classes">
+                <>
+                  <Link to="/student-upcoming-classes">
+                    <motion.button
+                      className="bg-green-600 hover:bg-green-700 text-white font-heading font-semibold px-5 py-2 rounded-lg text-sm"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Classes
+                    </motion.button>
+                  </Link>
+                  <Link to="/student-dashboard">
+                    <motion.button
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-heading font-semibold px-5 py-2 rounded-lg text-sm"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Dashboard
+                    </motion.button>
+                  </Link>
+                </>
+              )}
+
+              {user.role === 'teacher' && (
+                <Link to="/teacher-dashboard">
                   <motion.button
-                    className="bg-green-600 hover:bg-green-700 text-white font-heading font-semibold px-6 py-3 rounded-[10px]"
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-heading font-semibold px-5 py-2 rounded-lg text-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Upcoming Classes
+                    Dashboard
                   </motion.button>
                 </Link>
               )}
-              <Link to={
-                user.role === 'student' ? '/student-dashboard' :
-                user.role === 'teacher' ? '/teacher-dashboard' :
-                '/admin-dashboard'
-              }>
-                <motion.button
-                  className="bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Dashboard
-                </motion.button>
-              </Link>
+
+              {user.role === 'admin' && (
+                <Link to="/admin-dashboard">
+                  <motion.button
+                    className="bg-red-600 hover:bg-red-700 text-white font-heading font-semibold px-5 py-2 rounded-lg text-sm"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Admin
+                  </motion.button>
+                </Link>
+              )}
+
+              {/* Logout Button */}
+              <motion.button
+                onClick={() => {
+                  useAuthStore.setState({ user: null });
+                  window.location.href = '/';
+                }}
+                className="bg-slate-600 hover:bg-slate-700 text-white font-heading font-semibold px-5 py-2 rounded-lg text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Logout
+              </motion.button>
             </>
           ) : (
             <>
+              <Link to="/login">
+                <motion.button
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-heading font-semibold px-5 py-2 rounded-lg text-sm"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => trackEvent('cta_click', { button: 'login_header' })}
+                >
+                  Login
+                </motion.button>
+              </Link>
               <motion.button
                 className="bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]"
                 whileHover={{ scale: 1.05 }}
@@ -281,33 +329,93 @@ export default function Header() {
             <div className="border-t border-foreground/10 my-4 pt-4 space-y-2">
               {user ? (
                 <>
-                  {user.role === 'student' && (
-                    <Link to="/student-upcoming-classes" onClick={() => setIsOpen(false)}>
+                  {/* Admin Notification - Mobile */}
+                  {user.role === 'admin' && (
+                    <Link to="/admin-notifications" onClick={() => setIsOpen(false)}>
                       <motion.button
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-heading font-semibold px-6 py-3 rounded-[10px]"
+                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        Upcoming Classes
+                        📬 Notifications
                       </motion.button>
                     </Link>
                   )}
-                  <Link to={
-                    user.role === 'student' ? '/student-dashboard' :
-                    user.role === 'teacher' ? '/teacher-dashboard' :
-                    '/admin-dashboard'
-                  } onClick={() => setIsOpen(false)}>
-                    <motion.button
-                      className="w-full bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Dashboard
-                    </motion.button>
-                  </Link>
+
+                  {/* Role-based Dashboard Button - Mobile */}
+                  {user.role === 'student' && (
+                    <>
+                      <Link to="/student-upcoming-classes" onClick={() => setIsOpen(false)}>
+                        <motion.button
+                          className="w-full bg-green-600 hover:bg-green-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Upcoming Classes
+                        </motion.button>
+                      </Link>
+                      <Link to="/student-dashboard" onClick={() => setIsOpen(false)}>
+                        <motion.button
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Dashboard
+                        </motion.button>
+                      </Link>
+                    </>
+                  )}
+
+                  {user.role === 'teacher' && (
+                    <Link to="/teacher-dashboard" onClick={() => setIsOpen(false)}>
+                      <motion.button
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Dashboard
+                      </motion.button>
+                    </Link>
+                  )}
+
+                  {user.role === 'admin' && (
+                    <Link to="/admin-dashboard" onClick={() => setIsOpen(false)}>
+                      <motion.button
+                        className="w-full bg-red-600 hover:bg-red-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Admin Dashboard
+                      </motion.button>
+                    </Link>
+                  )}
+
+                  {/* Logout Button - Mobile */}
+                  <motion.button
+                    onClick={() => {
+                      useAuthStore.setState({ user: null });
+                      setIsOpen(false);
+                      window.location.href = '/';
+                    }}
+                    className="w-full bg-slate-600 hover:bg-slate-700 text-white font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Logout
+                  </motion.button>
                 </>
               ) : (
                 <>
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <motion.button
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-heading font-semibold px-6 py-2 rounded-lg text-sm"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => trackEvent('cta_click', { button: 'login_mobile' })}
+                    >
+                      Login
+                    </motion.button>
+                  </Link>
                   <motion.button
                     className="w-full bg-primary text-primary-foreground font-heading font-semibold px-6 py-3 rounded-[10px]"
                     whileHover={{ scale: 1.02 }}

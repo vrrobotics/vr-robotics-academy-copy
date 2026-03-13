@@ -529,10 +529,12 @@ export interface TeacherApprovals {
   _id: string;
   _createdDate?: string;
   _updatedDate?: string;
-  teacherEmail?: string;
-  teacherFullName?: string;
-  teacherPhoneNumber?: string;
-  approvalStatus?: string;
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  experience?: string;
+  subject?: string;
+  status?: string;
   submissionDate?: Date | string;
   approvalDate?: Date | string;
   approvedByAdmin?: string;

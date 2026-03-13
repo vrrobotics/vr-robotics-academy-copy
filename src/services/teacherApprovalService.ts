@@ -16,10 +16,12 @@ export interface TeacherApprovalRecord {
   _id: string;
   _createdDate?: string;
   _updatedDate?: string;
-  teacherEmail?: string;
-  teacherFullName?: string;
-  teacherPhoneNumber?: string;
-  approvalStatus?: 'pending' | 'approved' | 'rejected'; // pending, approved, rejected
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  experience?: string;
+  subject?: string;
+  status?: 'pending' | 'approved' | 'rejected'; // pending, approved, rejected
   submissionDate?: Date | string;
   approvalDate?: Date | string;
   approvedByAdmin?: string;
@@ -46,10 +48,10 @@ class TeacherApprovalService {
 
       const approvalRecord: TeacherApprovalRecord = {
         _id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        teacherEmail: teacherData.email,
-        teacherFullName: teacherData.fullName,
-        teacherPhoneNumber: teacherData.phoneNumber || '',
-        approvalStatus: 'pending',
+        email: teacherData.email,
+        fullName: teacherData.fullName,
+        phoneNumber: teacherData.phoneNumber || '',
+        status: 'pending',
         submissionDate: new Date().toISOString(),
         submittedDocumentNames: JSON.stringify(teacherData.documentNames),
         submittedDocuments: teacherData.documents ? JSON.stringify(teacherData.documents) : undefined,
@@ -73,7 +75,7 @@ class TeacherApprovalService {
 
       const { items } = await SupabaseCrudService.getAll<TeacherApprovalRecord>(this.COLLECTION_ID);
       const approvalRecord = items.find(
-        item => item.teacherEmail?.toLowerCase() === email.toLowerCase()
+        item => item.email?.toLowerCase() === email.toLowerCase()
       );
 
       if (!approvalRecord) {
@@ -81,8 +83,8 @@ class TeacherApprovalService {
         return false;
       }
 
-      const isApproved = approvalRecord.approvalStatus === 'approved';
-      console.log('[TeacherApprovalService] Approval status for', email, ':', approvalRecord.approvalStatus);
+      const isApproved = approvalRecord.status === 'approved';
+      console.log('[TeacherApprovalService] Approval status for', email, ':', approvalRecord.status);
       return isApproved;
     } catch (error) {
       console.error('[TeacherApprovalService] Error checking approval status:', error);
@@ -97,7 +99,7 @@ class TeacherApprovalService {
     try {
       const { items } = await SupabaseCrudService.getAll<TeacherApprovalRecord>(this.COLLECTION_ID);
       const record = items.find(
-        item => item.teacherEmail?.toLowerCase() === email.toLowerCase()
+        item => item.email?.toLowerCase() === email.toLowerCase()
       );
       return record || null;
     } catch (error) {
@@ -120,7 +122,7 @@ class TeacherApprovalService {
 
       const updatedRecord: TeacherApprovalRecord = {
         ...record,
-        approvalStatus: 'approved',
+        status: 'approved',
         approvalDate: new Date().toISOString(),
         approvedByAdmin: approvedBy,
       };
@@ -165,7 +167,7 @@ class TeacherApprovalService {
   static async getPendingApprovals(): Promise<TeacherApprovalRecord[]> {
     try {
       const { items } = await SupabaseCrudService.getAll<TeacherApprovalRecord>(this.COLLECTION_ID);
-      const pending = items.filter(item => item.approvalStatus === 'pending');
+      const pending = items.filter(item => item.status === 'pending');
       console.log('[TeacherApprovalService] Found', pending.length, 'pending approvals');
       return pending;
     } catch (error) {
@@ -186,9 +188,9 @@ class TeacherApprovalService {
     try {
       const { items } = await SupabaseCrudService.getAll<TeacherApprovalRecord>(this.COLLECTION_ID);
       return {
-        pending: items.filter(i => i.approvalStatus === 'pending').length,
-        approved: items.filter(i => i.approvalStatus === 'approved').length,
-        rejected: items.filter(i => i.approvalStatus === 'rejected').length,
+        pending: items.filter(i => i.status === 'pending').length,
+        approved: items.filter(i => i.status === 'approved').length,
+        rejected: items.filter(i => i.status === 'rejected').length,
         total: items.length,
       };
     } catch (error) {

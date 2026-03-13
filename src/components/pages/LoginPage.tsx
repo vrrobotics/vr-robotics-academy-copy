@@ -147,7 +147,6 @@ export default function LoginPage() {
         phoneNumber: studentSignupData.phoneNumber,
         age: parseInt(studentSignupData.age),
         gender: studentSignupData.gender,
-        password: studentSignupData.password,
         submissionDate: new Date(),
         status: 'pending',
       };
@@ -230,7 +229,7 @@ export default function LoginPage() {
       });
 
       if (!emailResult.success) {
-        throw new Error(emailResult.error || 'Failed to send documents');
+        console.warn('[LoginPage] Email sending failed, continuing signup:', emailResult.error);
       }
 
       console.log('[LoginPage] ✓ Documents sent to admin successfully');

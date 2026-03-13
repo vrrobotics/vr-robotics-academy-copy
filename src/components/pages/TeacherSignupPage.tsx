@@ -155,17 +155,17 @@ export default function TeacherSignupPage() {
         return;
       }
 
-      // Create teacher approval request with documents
-      const teacherApprovalData: TeacherApprovalWithPassword = {
+      // Create teacher approval request
+      const teacherApprovalData: Partial<TeacherApprovals> = {
         _id: crypto.randomUUID(),
-        teacherFullName: formData.teacherFullName,
-        teacherEmail: formData.teacherEmail,
-        teacherPhoneNumber: formData.teacherPhoneNumber,
-        password: formData.password,
+        fullName: formData.teacherFullName,
+        email: formData.teacherEmail,
+        phoneNumber: formData.teacherPhoneNumber,
+        experience: formData.experience,
+        subject: formData.qualifications,
         submissionDate: new Date(),
-        approvalStatus: 'pending',
+        status: 'pending',
         submittedDocumentNames: JSON.stringify(uploadedDocuments.map(doc => doc.name)),
-        submittedDocuments: JSON.stringify(uploadedDocuments),
       };
 
       console.log('[TeacherSignupPage] Creating teacher approval record with', uploadedDocuments.length, 'documents');
