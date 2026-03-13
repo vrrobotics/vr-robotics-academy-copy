@@ -9,7 +9,7 @@ const isGitHubPages =
 
 export default defineConfig({
   site: 'https://vrrobotics.github.io',
-  base: isGitHubPages ? '/vr-robotics-academy' : '/',
+  base: isGitHubPages ? '/vr-robotics-academy-copy' : '/',
   
   integrations: [
     tailwind(),
