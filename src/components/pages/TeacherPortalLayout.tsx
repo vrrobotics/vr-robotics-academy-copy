@@ -33,30 +33,17 @@ export default function TeacherPortalLayout({ children, pageTitle }: TeacherPort
   const email = useAuthStore((state) => state.user?.email);
 
   // ============================================================================
-  // VALIDATE ROLE ON LOAD - Redirect non-teachers to /login
+  // VALIDATE ROLE ON LOAD - Allow public access (no redirect)
   // ============================================================================
   useEffect(() => {
-    console.log('[TeacherPortalLayout] Component mounted - Starting role validation');
+    console.log('[TeacherPortalLayout] Component mounted - Allow public access');
     
-    if (!user) {
-      console.warn('[TeacherPortalLayout] No user found - Redirecting to /login');
-      navigate('/login', { replace: true });
-      return;
+    // Allow public access - don't redirect if no user
+    if (user) {
+      console.log(`[TeacherPortalLayout] ✓ User loaded - teacherId: ${user.id}, role: ${user.role}`);
+    } else {
+      console.log('[TeacherPortalLayout] No user - showing public view');
     }
-
-    if (!user.id || !user.role) {
-      console.error('[TeacherPortalLayout] User missing required fields:', { id: user.id, role: user.role });
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    if (user.role !== 'teacher') {
-      console.warn(`[TeacherPortalLayout] User role is not 'teacher': ${user.role} - Redirecting to /login`);
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    console.log(`[TeacherPortalLayout] ✓ Role validation passed - teacherId: ${user.id}, role: ${user.role}`);
   }, [user, navigate]);
 
   const menuItems: MenuItem[] = [
@@ -98,10 +85,11 @@ export default function TeacherPortalLayout({ children, pageTitle }: TeacherPort
     return isActive;
   }, [location.pathname]);
 
-  if (!user) {
-    console.warn('[TeacherPortalLayout] User is null, returning null');
-    return null;
-  }
+  // Allow public access - render even without user
+  // if (!user) {
+  //   console.warn('[TeacherPortalLayout] User is null, returning null');
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#1a2a4e] via-[#0f1a2e] to-[#0a0f1a] text-foreground flex">
@@ -120,18 +108,18 @@ export default function TeacherPortalLayout({ children, pageTitle }: TeacherPort
           >
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-primary/40">
               {profilePicture ? (
-                <Image src={profilePicture} alt={user.fullName} className="w-full h-full object-cover" onError={(e) => {
+                <Image src={profilePicture} alt={user?.fullName || 'User'} className="w-full h-full object-cover" onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                   }} />
               ) : null}
               <span className={`font-heading text-xl text-background font-bold ${profilePicture ? 'hidden' : ''}`}>
-                {user.fullName?.charAt(0).toUpperCase()}
+                {(user?.fullName?.charAt(0) || fullName?.charAt(0) || 'T').toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-heading text-lg text-foreground truncate">{fullName || user?.fullName}</h3>
-              <p className="font-paragraph text-xs text-foreground/60">{email || user?.email}</p>
+              <h3 className="font-heading text-lg text-foreground truncate">{fullName || user?.fullName || 'Teacher'}</h3>
+              <p className="font-paragraph text-xs text-foreground/60">{email || user?.email || 'Public View'}</p>
             </div>
           </motion.div>
 
@@ -165,18 +153,20 @@ export default function TeacherPortalLayout({ children, pageTitle }: TeacherPort
             })}
           </nav>
 
-          {/* Logout Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            onClick={handleLogout}
-            type="button"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all duration-300 font-paragraph text-sm cursor-pointer"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            Logout
-          </motion.button>
+          {/* Logout Button - Only show if user exists */}
+          {user && (
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              onClick={handleLogout}
+              type="button"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all duration-300 font-paragraph text-sm cursor-pointer"
+            >
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              Logout
+            </motion.button>
+          )}
         </div>
       </motion.aside>
 

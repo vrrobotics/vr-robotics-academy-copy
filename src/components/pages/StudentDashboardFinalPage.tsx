@@ -53,10 +53,14 @@ export default function StudentDashboardFinalPage() {
 
   // Check for enrollments and show popup if none exist
   useEffect(() => {
-    if (enrollments.length === 0 && !isLoading && !error) {
+    // Show popup for public access or if no enrollments
+    if (!userId) {
+      // For public access, show the welcome video
+      setTimeout(() => setShowEnrollmentPopup(true), 500);
+    } else if (enrollments.length === 0 && !isLoading && !error) {
       setShowEnrollmentPopup(true);
     }
-  }, [enrollments, isLoading, error]);
+  }, [enrollments, isLoading, error, userId]);
 
   const loadDashboardData = async () => {
     try {
