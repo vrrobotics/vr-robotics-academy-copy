@@ -117,10 +117,15 @@ const AdvancedGradingPage = lazy(() => import("@/components/pages/AdvancedGradin
 const CollaborationHubPage = lazy(() => import("@/components/pages/CollaborationHubPage"));
 const CertificatesPage = lazy(() => import("@/components/pages/CertificatesPage"));
 
-// Demo Pages (Public Access - No Login Required)
+// Demo Pages (Public Access - No Login Required - Mock Data)
 const AdminDashboardDemoPage = lazy(() => import("@/components/pages/demo/AdminDashboardDemoPage"));
 const TeacherDashboardDemoPage = lazy(() => import("@/components/pages/demo/TeacherDashboardDemoPage"));
 const StudentDashboardDemoPage = lazy(() => import("@/components/pages/demo/StudentDashboardDemoPage"));
+
+// Public Pages (Public Access - No Login Required - Real Data)
+const AdminDashboardPublic = lazy(() => import("@/components/pages/AdminDashboardNewPage"));
+const TeacherDashboardPublic = lazy(() => import("@/components/pages/TeacherDashboardPage"));
+const StudentDashboardPublic = lazy(() => import("@/components/pages/StudentDashboardFinalPage"));
 
 // Loading wrapper component
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -472,7 +477,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
 
-  // Demo Pages - Public Access (No Login Required)
+  // Demo Pages - Public Access (No Login Required - Mock Data)
   {
     path: "demo/admin-dashboard",
     element: <SuspenseWrapper><AdminDashboardDemoPage /></SuspenseWrapper>,
@@ -486,6 +491,23 @@ const router = createBrowserRouter([
   {
     path: "demo/student-dashboard",
     element: <SuspenseWrapper><StudentDashboardDemoPage /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+
+  // Public Pages - Public Access (No Login Required - Real Data)
+  {
+    path: "admin-dashboard-public",
+    element: <SuspenseWrapper><AdminDashboardPublic /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "teacher-dashboard-public",
+    element: <SuspenseWrapper><TeacherDashboardPublic /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "student-dashboard-public",
+    element: <SuspenseWrapper><StudentDashboardPublic /></SuspenseWrapper>,
     errorElement: <ErrorPage />,
   },
 ], {

@@ -38,20 +38,18 @@ export default function TeacherDashboardPage() {
   const [teacherAssignments, setTeacherAssignments] = useState<TeacherAssignments[]>([]);
 
   // ============================================================================
-  // STEP 1: BASIC USER CHECK (Teacher role protection)
+  // STEP 1: BASIC USER CHECK (Allow public access)
   // ============================================================================
   useEffect(() => {
     console.log('[TeacherDashboardPage] Component mounted');
     
-    // Protect dashboard - only teachers can access
-    if (!user || user.role !== 'teacher') {
-      console.warn('[TeacherDashboardPage] Unauthorized access attempt - user not a teacher');
-      alert('Unauthorized: Only teachers can access this dashboard. Please login as a teacher.');
-      navigate('/teacher-login', { replace: true });
+    // Allow public access - no role check required
+    if (!user) {
+      console.warn('[TeacherDashboardPage] No user found - loading demo data');
       return;
     }
 
-    console.log(`[TeacherDashboardPage] ✓ Teacher allowed - userId: ${user.id}, name: ${user.fullName}`);
+    console.log(`[TeacherDashboardPage] ✓ User loaded - userId: ${user.id}, name: ${user.fullName}`);
   }, [user, navigate]);
 
   // ============================================================================

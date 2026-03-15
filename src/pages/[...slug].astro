@@ -11,12 +11,16 @@ export async function getStaticPaths() {
     { params: { slug: 'demo/admin-dashboard' } },
     { params: { slug: 'demo/teacher-dashboard' } },
     { params: { slug: 'demo/student-dashboard' } },
+    // Public Routes (No Login)
+    { params: { slug: 'admin-dashboard-public' } },
+    { params: { slug: 'teacher-dashboard-public' } },
+    { params: { slug: 'student-dashboard-public' } },
     // Auth Routes
     { params: { slug: 'login' } },
     { params: { slug: 'student-signup' } },
     { params: { slug: 'teacher-login' } },
     { params: { slug: 'teacher-signup' } },
-    // Dashboard Routes
+    // Dashboard Routes (Protected)
     { params: { slug: 'student-dashboard' } },
     { params: { slug: 'student-dashboard-new' } },
     { params: { slug: 'student-dashboard-final' } },
