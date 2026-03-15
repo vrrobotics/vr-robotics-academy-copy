@@ -117,6 +117,11 @@ const AdvancedGradingPage = lazy(() => import("@/components/pages/AdvancedGradin
 const CollaborationHubPage = lazy(() => import("@/components/pages/CollaborationHubPage"));
 const CertificatesPage = lazy(() => import("@/components/pages/CertificatesPage"));
 
+// Demo Pages (Public Access - No Login Required)
+const AdminDashboardDemoPage = lazy(() => import("@/components/pages/demo/AdminDashboardDemoPage"));
+const TeacherDashboardDemoPage = lazy(() => import("@/components/pages/demo/TeacherDashboardDemoPage"));
+const StudentDashboardDemoPage = lazy(() => import("@/components/pages/demo/StudentDashboardDemoPage"));
+
 // Loading wrapper component
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<LoadingSpinner />}>
@@ -464,6 +469,23 @@ const router = createBrowserRouter([
   {
     path: "certificates",
     element: <SuspenseWrapper><CertificatesPage /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+
+  // Demo Pages - Public Access (No Login Required)
+  {
+    path: "demo/admin-dashboard",
+    element: <SuspenseWrapper><AdminDashboardDemoPage /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "demo/teacher-dashboard",
+    element: <SuspenseWrapper><TeacherDashboardDemoPage /></SuspenseWrapper>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "demo/student-dashboard",
+    element: <SuspenseWrapper><StudentDashboardDemoPage /></SuspenseWrapper>,
     errorElement: <ErrorPage />,
   },
 ], {
