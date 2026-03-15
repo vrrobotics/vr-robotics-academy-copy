@@ -43,7 +43,8 @@ export default function StudentDashboardFinalPage() {
 
     // Allow public access - no role check required
     if (!userId) {
-      setError('User ID not found');
+      console.warn('[StudentDashboard] No user ID found - loading public view');
+      setIsLoading(false);
       return;
     }
 

@@ -255,11 +255,12 @@ export default function TeacherDashboardPage() {
     );
   }
 
-  if (!user) {
-    console.error('[TeacherDashboardPage] User is null, cannot render dashboard');
-    navigate('/teacher-login');
-    return null;
-  }
+  // Allow public access - render dashboard even without user
+  // if (!user) {
+  //   console.warn('[TeacherDashboardPage] No user logged in - showing public view');
+  //   navigate('/teacher-login');
+  //   return null;
+  // }
 
   try {
     return (
@@ -272,7 +273,7 @@ export default function TeacherDashboardPage() {
             className="mb-8"
           >
             <h1 className="font-heading text-4xl text-foreground mb-2">
-              Welcome, {user.fullName}!
+              Welcome, {user?.fullName || 'Teacher'}!
             </h1>
             <p className="font-paragraph text-foreground/60">
               {batch?.name || 'Loading batch...'} • {batch?.schedule || ''}
