@@ -4,12 +4,27 @@ import react from "@astrojs/react";
 import vercel from "@astrojs/vercel";
 
 const isVercel = process.env.VERCEL === "1";
+const deployTarget = process.env.PUBLIC_DEPLOY_TARGET || "";
 const isGitHubPages =
-  process.env.PUBLIC_DEPLOY_TARGET === "github" || process.env.GITHUB_ACTIONS === "true";
+  deployTarget.includes("github") || process.env.GITHUB_ACTIONS === "true";
+
+// Determine the base path based on deployment target
+let basePath = '/';
+if (isGitHubPages) {
+  if (deployTarget === "github-admin") {
+    basePath = '/admin-dashboard/';
+  } else if (deployTarget === "github-teacher") {
+    basePath = '/teacher-dashboard/';
+  } else if (deployTarget === "github-student") {
+    basePath = '/student-dashboard/';
+  } else {
+    basePath = '/vr-robotics-academy-copy/';
+  }
+}
 
 export default defineConfig({
   site: 'https://vrrobotics.github.io',
-  base: isGitHubPages ? '/vr-robotics-academy-copy' : '/',
+  base: basePath,
   
   integrations: [
     tailwind(),

@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { BookOpen, Users, BarChart3, Trophy, Calendar, Play, MessageSquare, Menu, Bell, LogOut } from 'lucide-react';
+import { BookOpen, Users, BarChart3, Trophy, Calendar, Play, MessageSquare, Menu, Bell, LogOut, Home, Award, Settings, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default function StudentDashboardDemoPage() {
   const [activeModule, setActiveModule] = useState('module-1');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activePage, setActivePage] = useState('dashboard');
 
   const mockStudentData = {
     name: 'Alex Kumar',
@@ -48,62 +50,118 @@ export default function StudentDashboardDemoPage() {
     { rank: 5, name: 'Arjun Verma', points: 1850, badges: 3 },
   ];
 
+  const menuItems = [
+    { icon: Home, label: 'Dashboard', id: 'dashboard' },
+    { icon: BookOpen, label: 'My Courses', id: 'courses' },
+    { icon: Calendar, label: 'Schedule', id: 'schedule' },
+    { icon: Play, label: 'Assignments', id: 'assignments' },
+    { icon: Award, label: 'Leaderboard', id: 'leaderboard' },
+    { icon: BarChart3, label: 'Performance', id: 'performance' },
+    { icon: MessageSquare, label: 'Messages', id: 'messages' },
+    { icon: Users, label: 'Study Groups', id: 'groups' },
+    { icon: Settings, label: 'Settings', id: 'settings' },
+    { icon: HelpCircle, label: 'Help & Support', id: 'help' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="font-bold text-blue-600 text-lg">VR</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">Student Portal</h1>
-                <p className="text-blue-100 text-sm">Demo Mode</p>
-              </div>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-blue-600 to-indigo-700 text-white transition-all duration-300 overflow-hidden shadow-lg`}>
+        <div className="p-4 flex items-center justify-between">
+          <div className={`${sidebarOpen ? 'block' : 'hidden'}`}>
+            <h1 className="text-xl font-bold">StudentHub</h1>
+            <p className="text-blue-200 text-xs">VR Robotics</p>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 hover:bg-blue-700 rounded-lg transition"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+
+        <nav className="mt-8 space-y-2 px-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActivePage(item.id)}
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition group ${
+                activePage === item.id
+                  ? 'bg-white bg-opacity-20 border-l-4 border-white'
+                  : 'hover:bg-blue-700'
+              }`}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className={`${sidebarOpen ? 'block' : 'hidden'} text-sm font-medium group-hover:translate-x-1 transition`}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="absolute bottom-10 left-4 right-4">
+          <Button className="w-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-2 rounded-lg">
+            <LogOut className="w-4 h-4" />
+            {sidebarOpen && 'Logout'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+          <div className="px-8 py-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {menuItems.find(m => m.id === activePage)?.label || 'Student Dashboard'}
+              </h1>
+              <p className="text-gray-500 text-sm">Demo Mode - Welcome!</p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition">
+              <button className="relative p-2 text-gray-600 hover:text-gray-900">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-3 h-3 bg-red-400 rounded-full"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <div className="w-10 h-10 bg-white text-blue-600 rounded-lg flex items-center justify-center font-bold text-lg cursor-pointer hover:bg-blue-50">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold cursor-pointer hover:bg-blue-700">
                 AK
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Card */}
-        <Card className="p-8 mb-8 bg-white border-0 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900">Welcome back, {mockStudentData.name}!</h2>
-              <p className="text-gray-500 mt-2">Keep up your learning streak and achieve your goals</p>
-              <div className="flex gap-6 mt-4">
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto bg-gray-50">
+          <div className="max-w-6xl mx-auto px-8 py-8">
+        {activePage === 'dashboard' && (
+          <>
+            {/* Welcome Card */}
+            <Card className="p-8 mb-8 bg-white border-0 shadow-md">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Batch</p>
-                  <p className="text-lg font-bold text-blue-600">{mockStudentData.batchId}</p>
+                  <h2 className="text-4xl font-bold text-gray-900">Welcome back, {mockStudentData.name}!</h2>
+                  <p className="text-gray-500 mt-2">Keep up your learning streak and achieve your goals</p>
+                  <div className="flex gap-6 mt-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Batch</p>
+                      <p className="text-lg font-bold text-blue-600">{mockStudentData.batchId}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Overall Progress</p>
+                      <p className="text-lg font-bold text-indigo-600">{mockStudentData.overallProgress}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Points Earned</p>
+                      <p className="text-lg font-bold text-green-600">{mockStudentData.points}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Overall Progress</p>
-                  <p className="text-lg font-bold text-indigo-600">{mockStudentData.overallProgress}%</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Points Earned</p>
-                  <p className="text-lg font-bold text-green-600">{mockStudentData.points}</p>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Overall Rating</p>
+                  <p className="text-4xl font-bold text-yellow-500 mt-2">⭐ {mockStudentData.rating}/5</p>
                 </div>
               </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Overall Rating</p>
-              <p className="text-4xl font-bold text-yellow-500 mt-2">⭐ {mockStudentData.rating}/5</p>
-            </div>
-          </div>
-        </Card>
+            </Card>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -297,6 +355,198 @@ export default function StudentDashboardDemoPage() {
             on the leaderboard, and access all your learning modules. This demo showcases the complete student experience
             in the VR Robotics Academy platform.
           </p>
+        </div>
+          </>
+        )}
+
+        {activePage === 'courses' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Courses</h2>
+            <div className="space-y-4">
+              {mockModules.map((module) => (
+                <div key={module.id} className="p-6 border border-gray-200 rounded-lg hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+                      <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
+                        <div className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600" style={{ width: `${module.progress}%` }}></div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">{module.progress}% Complete</p>
+                    </div>
+                    <span className={`ml-4 px-4 py-2 rounded-full text-sm font-semibold ${
+                      module.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      module.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {module.status === 'in-progress' ? 'In Progress' : module.status === 'completed' ? 'Completed' : 'Locked'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'schedule' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Schedule</h2>
+            <div className="space-y-4">
+              {mockUpcomingClasses.map((cls) => (
+                <div key={cls.id} className="p-6 border-l-4 border-blue-500 bg-blue-50 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">{cls.title}</h3>
+                      <p className="text-gray-600 mt-1">Teacher: {cls.teacher}</p>
+                      <p className="text-gray-600 mt-1">{cls.date} at {cls.time}</p>
+                    </div>
+                    <Button className="bg-blue-600 hover:bg-blue-700">Join Class</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'assignments' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Assignments</h2>
+            <div className="space-y-4">
+              {mockAssignments.map((assignment) => (
+                <div key={assignment.id} className="p-6 border border-gray-200 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 text-lg">{assignment.title}</h3>
+                      <p className="text-gray-600 mt-2">Due: {assignment.dueDate}</p>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div className="h-2 rounded-full bg-gradient-to-r from-green-400 to-green-600" style={{ width: `${assignment.progress}%` }}></div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">{assignment.progress}% submitted</p>
+                    </div>
+                    <span className={`ml-4 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
+                      assignment.status === 'submitted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {assignment.status === 'submitted' ? 'Submitted' : 'Pending'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'leaderboard' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🏆 Leaderboard</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                  <tr>
+                    <th className="px-6 py-3 text-left font-semibold">Rank</th>
+                    <th className="px-6 py-3 text-left font-semibold">Student Name</th>
+                    <th className="px-6 py-3 text-left font-semibold">Points</th>
+                    <th className="px-6 py-3 text-left font-semibold">Badges</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockLeaderboard.map((student) => (
+                    <tr key={student.rank} className={`border-b ${student.rank <= 3 ? 'bg-yellow-50' : 'hover:bg-gray-50'} transition`}>
+                      <td className="px-6 py-4 font-bold text-lg">
+                        {student.rank === 1 ? '🥇' : student.rank === 2 ? '🥈' : student.rank === 3 ? '🥉' : `#${student.rank}`}
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-gray-900">{student.name}</td>
+                      <td className="px-6 py-4 text-green-600 font-bold">{student.points} pts</td>
+                      <td className="px-6 py-4"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">{student.badges} 🎖️</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'performance' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Performance Analytics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-4">Learning Progress</h3>
+                <p className="text-4xl font-bold text-blue-600">{mockStudentData.overallProgress}%</p>
+                <p className="text-gray-600 mt-2">Course completion rate</p>
+              </div>
+              <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-4">Points Earned</h3>
+                <p className="text-4xl font-bold text-green-600">{mockStudentData.points}</p>
+                <p className="text-gray-600 mt-2">Gamification score</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'messages' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Messages & Discussions</h2>
+            <div className="text-center py-12">
+              <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No messages yet</p>
+              <p className="text-gray-400 mt-2">Start a discussion with your teachers and classmates</p>
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'groups' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Study Groups</h2>
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No study groups yet</p>
+              <p className="text-gray-400 mt-2">Create or join a study group with your peers</p>
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'settings' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+            <div className="space-y-6">
+              <div className="border-b pb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Profile Information</h3>
+                <p className="text-gray-600">Name: {mockStudentData.name}</p>
+                <p className="text-gray-600">Email: {mockStudentData.email}</p>
+                <p className="text-gray-600">Batch: {mockStudentData.batchId}</p>
+              </div>
+              <div className="border-b pb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Notification Preferences</h3>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded" />
+                  <span className="text-gray-700">Email notifications for assignments</span>
+                </label>
+              </div>
+              <Button className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+            </div>
+          </Card>
+        )}
+
+        {activePage === 'help' && (
+          <Card className="p-6 bg-white">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Help & Support</h2>
+            <div className="space-y-4">
+              <div className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <h3 className="font-semibold text-gray-900">How do I submit an assignment?</h3>
+                <p className="text-gray-600 text-sm mt-2">Click on an assignment and use the upload button to submit your work before the deadline.</p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <h3 className="font-semibold text-gray-900">How are gamification points calculated?</h3>
+                <p className="text-gray-600 text-sm mt-2">Points are awarded based on course completion, assignment submission, and class attendance.</p>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <h3 className="font-semibold text-gray-900">How do I join a class?</h3>
+                <p className="text-gray-600 text-sm mt-2">Go to the Schedule page and click the "Join Class" button to enter a live class session.</p>
+              </div>
+              <Button className="mt-6 bg-blue-600 hover:bg-blue-700">Contact Support</Button>
+            </div>
+          </Card>
+        )}
+          </div>
         </div>
       </div>
     </div>

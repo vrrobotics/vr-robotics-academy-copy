@@ -142,12 +142,12 @@ export default function LoginPage() {
 
       const studentApprovalData: StudentApprovalWithPassword = {
         _id: crypto.randomUUID(),
-        fullName: studentSignupData.fullName,
+        fullname: studentSignupData.fullName,
         email: studentSignupData.email,
-        phoneNumber: studentSignupData.phoneNumber,
+        phonenumber: studentSignupData.phoneNumber,
         age: parseInt(studentSignupData.age),
         gender: studentSignupData.gender,
-        submissionDate: new Date(),
+        submissiondate: new Date(),
         status: 'pending',
       };
 
@@ -378,102 +378,105 @@ export default function LoginPage() {
       return;
     }
 
-    // Admin credentials - only specific emails with their passwords
-    const adminCredentials: Record<string, string> = {
-      'abhinavneeraj.bade@gmail.com': '27Sep@2006',
-      'md@vrroboticsacademy.com': 'hello',
-      'admin1@example.com': 'password1',
-      'admin2@example.com': 'password2',
-      'admin3@example.com': 'password3',
-      'admin4@example.com': 'password4',
-    };
+    try {
+      // Admin credentials
+      const adminCredentials: Record<string, string> = {
+        'abhinavneeraj.bade@gmail.com': '27Sep@2006',
+        'abhinavneeraj.l@gmail.com': '27Sep@2006',
+        'md@vrroboticsacademy.com': 'hello',
+        'admin1@example.com': 'password1',
+        'admin2@example.com': 'password2',
+        'admin3@example.com': 'password3',
+        'admin4@example.com': 'password4',
+      };
 
-    const mockUsers: Record<UserRole, any> = {
-      student: {
-        id: 'student-001',
-        email: 'student@example.com',
-        fullName: 'Alex Johnson',
-        role: 'student',
-        batchId: 'BATCH-2024-001',
-        profilePicture: 'https://static.wixstatic.com/media/39909b_89e3599a26764b688a340f83117f5bd0~mv2.png?originWidth=128&originHeight=128'
-      },
-      teacher: {
-        id: 'teacher-001',
-        email: 'teacher@example.com',
-        fullName: 'Sarah Williams',
-        role: 'teacher',
-        batchId: 'BATCH-2024-001',
-        profilePicture: 'https://static.wixstatic.com/media/39909b_5c1f0d8e195f42a5ae1dd411bee94719~mv2.png?originWidth=128&originHeight=128'
-      },
-      admin: {
-        id: 'admin-001',
-        email: email,
-        fullName: 'Admin User',
-        role: 'admin',
-        profilePicture: 'https://static.wixstatic.com/media/39909b_04440d938e604c3ab39af70fd368b794~mv2.png?originWidth=128&originHeight=128'
-      }
-    };
+      // STEP 1: Check if admin login
+      if (adminCredentials[email]) {
+        if (adminCredentials[email] !== password) {
+          setError('Invalid password. Access denied.');
+          setIsLoading(false);
+          return;
+        }
 
-    // Check if email is admin credential
-    if (adminCredentials[email]) {
-      // Handle admin login with credential validation
-      if (adminCredentials[email] !== password) {
-        setError('Invalid password. Access denied.');
-        setIsLoading(false);
+        const adminUser = {
+          id: 'admin-001',
+          email: email,
+          fullName: 'Admin User',
+          role: 'admin',
+          profilePicture: 'https://static.wixstatic.com/media/39909b_04440d938e604c3ab39af70fd368b794~mv2.png?originWidth=128&originHeight=128'
+        };
+
+        setTimeout(() => {
+          login(adminUser);
+          setRole('admin');
+          setUserId(adminUser.id);
+          setIsLoading(false);
+          navigate('/admin-dashboard');
+        }, 1000);
         return;
       }
 
-      setTimeout(() => {
-        login(mockUsers['admin']);
-        setRole('admin');
-        setUserId(mockUsers['admin'].id);
-        setIsLoading(false);
-        navigate('/admin-dashboard');
-      }, 1000);
-    } else {
-      // Handle student login with password validation from database
+      // STEP 2: Check if teacher login
       try {
-        const { items: approvals } = await BaseCrudService.getAll<StudentApprovalWithPassword>('studentapprovals');
+        const { items: teachers } = await BaseCrudService.getAll('teacherapprovals');
+        const teacher = teachers.find((t: any) => t.email === email && t.status === 'approved');
         
-        // Find student by email and status
-        const student = approvals.find(
-          approval => approval.email === email && approval.status === 'approved'
-        );
+        if (teacher && teacher.password === password) {
+          const teacherUser = {
+            id: teacher._id,
+            email: teacher.email,
+            fullName: teacher.fullname || 'Teacher',
+            role: 'teacher' as UserRole,
+            profilePicture: 'https://static.wixstatic.com/media/39909b_5c1f0d8e195f42a5ae1dd411bee94719~mv2.png?originWidth=128&originHeight=128'
+          };
 
-        if (!student) {
-          setError('Student not found or not approved. Please check your email or contact support.');
-          setIsLoading(false);
+          setTimeout(() => {
+            login(teacherUser);
+            setRole('teacher');
+            setUserId(teacher._id);
+            setIsLoading(false);
+            navigate('/teacher-dashboard');
+          }, 1000);
           return;
         }
-
-        // Validate password
-        if (student.password !== password) {
-          setError('Invalid password. Please try again.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Login successful
-        const studentUser = {
-          id: student._id,
-          email: student.email,
-          fullName: student.fullName,
-          role: 'student' as const,
-          batchId: '',
-          profilePicture: 'https://static.wixstatic.com/media/39909b_89e3599a26764b688a340f83117f5bd0~mv2.png?originWidth=128&originHeight=128'
-        };
-
-        // Set role and user ID immediately, then show video
-        login(studentUser);
-        setRole('student');
-        setUserId(student._id);
-        setIsLoading(false);
-        setShowVideo(true);
       } catch (err) {
-        console.error('Error during login:', err);
-        setError('Login failed. Please try again.');
-        setIsLoading(false);
+        console.log('Teacher check skipped');
       }
+
+      // STEP 3: Check if student login
+      try {
+        const { items: students } = await BaseCrudService.getAll('studentapprovals');
+        const student = students.find((s: any) => s.email === email && s.status === 'approved');
+        
+        if (student && student.password === password) {
+          const studentUser = {
+            id: student._id,
+            email: student.email,
+            fullName: student.fullname || 'Student',
+            role: 'student' as UserRole,
+            batchId: student.batchId || 'N/A',
+            profilePicture: 'https://static.wixstatic.com/media/39909b_89e3599a26764b688a340f83117f5bd0~mv2.png?originWidth=128&originHeight=128'
+          };
+
+          setTimeout(() => {
+            login(studentUser);
+            setRole('student');
+            setUserId(student._id);
+            setIsLoading(false);
+            navigate('/student-dashboard');
+          }, 1000);
+          return;
+        }
+      } catch (err) {
+        console.log('Student check skipped');
+      }
+
+      // If we reach here, login failed
+      setError('Invalid email or password. Please check your credentials or contact support.');
+      setIsLoading(false);
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -1098,10 +1101,12 @@ export default function LoginPage() {
 
             {/* Demo Credentials */}
             <div className="mb-8 p-4 rounded-lg bg-secondary/10 border border-secondary/20">
-              <p className="font-heading text-xs text-secondary mb-2">Demo Credentials:</p>
+              <p className="font-heading text-xs text-secondary mb-2">🎓 Unified Login - One Portal for All:</p>
               <p className="font-paragraph text-xs text-foreground/70">
-                <strong>Admin:</strong> abhinavneeraj.bade@gmail.com / 27Sep@2006<br />
-                <strong>Student:</strong> Use your registered email and password to log in.<br />
+                <strong>✓ Admin:</strong> abhinavneeraj.bade@gmail.com / 27Sep@2006<br />
+                <strong>✓ Teacher:</strong> Use your registered teacher email and password<br />
+                <strong>✓ Student:</strong> Use your registered student email and password<br />
+                <small className="text-gray-400">System automatically detects your role and opens your portal</small><br />
                 If you don't have an account yet, <button type="button" onClick={() => { setIsSignupMode(true); setError(''); setEmail(''); setPassword(''); }} className="text-orange-500 hover:text-orange-400 font-semibold">sign up here</button>.
               </p>
             </div>

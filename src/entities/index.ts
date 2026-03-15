@@ -475,16 +475,17 @@ export interface StudentApprovals {
   _id: string;
   _createdDate?: string;
   _updatedDate?: string;
-  fullName?: string;
+  fullname?: string;
   email?: string;
-  phoneNumber?: string;
+  phonenumber?: string;
   age?: number;
   gender?: string;
-  submissionDate?: Date | string;
+  submissiondate?: Date | string;
   status?: string;
-  approvalDate?: Date | string;
-  approvedByAdmin?: string;
-  rejectionReason?: string;
+  approvaldate?: Date | string;
+  approvedbyadmin?: string;
+  rejectionreason?: string;
+  interests?: string;
 }
 
 

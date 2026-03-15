@@ -67,7 +67,7 @@ export class SupabaseCrudService {
 
   /**
    * Converts field names for studentapprovals/teacherapprovals tables.
-   * studentapprovals uses camelCase (legacy schema).
+   * studentapprovals often uses lowercase column names in Supabase.
    * teacherapprovals exists in two schema variants:
    * - legacy: fullName, email, phoneNumber, status
    * - new: teacherFullName, teacherEmail, teacherPhoneNumber, approvalStatus
@@ -76,7 +76,21 @@ export class SupabaseCrudService {
     if (!record) return record;
 
     if (tableName === 'studentapprovals') {
-      return record;
+      const fieldMappings: Record<string, string> = {
+        fullName: 'fullname',
+        phoneNumber: 'phonenumber',
+        submissionDate: 'submissiondate',
+        approvalDate: 'approvaldate',
+        approvedByAdmin: 'approvedbyadmin',
+        rejectionReason: 'rejectionreason',
+      };
+
+      const converted: any = {};
+      for (const [key, value] of Object.entries(record)) {
+        const mappedKey = fieldMappings[key] || key;
+        converted[mappedKey] = value;
+      }
+      return converted;
     }
 
     if (tableName === 'teacherapprovals') {
@@ -116,7 +130,21 @@ export class SupabaseCrudService {
     if (!record) return record;
 
     if (tableName === 'studentapprovals') {
-      return record;
+      const fieldMappings: Record<string, string> = {
+        fullname: 'fullName',
+        phonenumber: 'phoneNumber',
+        submissiondate: 'submissionDate',
+        approvaldate: 'approvalDate',
+        approvedbyadmin: 'approvedByAdmin',
+        rejectionreason: 'rejectionReason',
+      };
+
+      const converted: any = {};
+      for (const [key, value] of Object.entries(record)) {
+        const mappedKey = fieldMappings[key] || key;
+        converted[mappedKey] = value;
+      }
+      return converted;
     }
 
     if (tableName === 'teacherapprovals') {
@@ -193,10 +221,16 @@ export class SupabaseCrudService {
 
       let { data, error } = await attemptInsert(dataToInsert);
 
-      if (error && tableName === 'teacherapprovals' && this.isMissingColumnError(error)) {
-        // Fallback to legacy schema if new mapping fails
-        const legacyPayload = { ...record };
-        ({ data, error } = await attemptInsert(legacyPayload));
+      if (error && this.isMissingColumnError(error)) {
+        if (tableName === 'teacherapprovals') {
+          // Fallback to legacy schema if new mapping fails
+          const legacyPayload = { ...record };
+          ({ data, error } = await attemptInsert(legacyPayload));
+        } else if (tableName === 'studentapprovals') {
+          // Fallback to original payload if lowercase mapping fails
+          const originalPayload = { ...record };
+          ({ data, error } = await attemptInsert(originalPayload));
+        }
       }
 
       if (error) {
@@ -315,9 +349,14 @@ export class SupabaseCrudService {
 
     let { data, error } = await attemptUpdate(dataToUpdate);
 
-    if (error && tableName === 'teacherapprovals' && this.isMissingColumnError(error)) {
-      const legacyPayload = { ...record };
-      ({ data, error } = await attemptUpdate(legacyPayload));
+    if (error && this.isMissingColumnError(error)) {
+      if (tableName === 'teacherapprovals') {
+        const legacyPayload = { ...record };
+        ({ data, error } = await attemptUpdate(legacyPayload));
+      } else if (tableName === 'studentapprovals') {
+        const originalPayload = { ...record };
+        ({ data, error } = await attemptUpdate(originalPayload));
+      }
     }
 
     if (error) {
