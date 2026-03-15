@@ -66,24 +66,94 @@ export class SupabaseCrudService {
   }
 
   /**
-   * Converts field names for studentapprovals/teacherapprovals tables
-   * Note: These tables use camelCase, not lowercase (unlike the users table)
-   * So we only pass through the data as-is
+   * Converts field names for studentapprovals/teacherapprovals tables.
+   * studentapprovals uses camelCase (legacy schema).
+   * teacherapprovals exists in two schema variants:
+   * - legacy: fullName, email, phoneNumber, status
+   * - new: teacherFullName, teacherEmail, teacherPhoneNumber, approvalStatus
    */
-  private static convertApprovalFieldNames(record: any): any {
-    // studentapprovals and teacherapprovals use camelCase in the schema
-    // no conversion needed - return as-is
+  private static convertApprovalFieldNames(tableName: string, record: any): any {
+    if (!record) return record;
+
+    if (tableName === 'studentapprovals') {
+      return record;
+    }
+
+    if (tableName === 'teacherapprovals') {
+      const hasNewSchemaFields =
+        'teacherEmail' in record ||
+        'teacherFullName' in record ||
+        'teacherPhoneNumber' in record ||
+        'approvalStatus' in record;
+
+      if (hasNewSchemaFields) {
+        return record;
+      }
+
+      const fieldMappings: Record<string, string> = {
+        email: 'teacherEmail',
+        fullName: 'teacherFullName',
+        phoneNumber: 'teacherPhoneNumber',
+        status: 'approvalStatus',
+      };
+
+      const converted: any = {};
+      for (const [key, value] of Object.entries(record)) {
+        const mappedKey = fieldMappings[key] || key;
+        converted[mappedKey] = value;
+      }
+      return converted;
+    }
+
     return record;
   }
 
   /**
-   * Converts field names back for studentapprovals/teacherapprovals tables
-   * Note: These tables use camelCase, so no conversion needed
+   * Converts field names back for studentapprovals/teacherapprovals tables.
+   * teacherapprovals: maps new schema fields back to legacy names for UI usage.
    */
-  private static convertApprovalFieldNamesFromDB(record: any): any {
-    // studentapprovals and teacherapprovals use camelCase in the schema
-    // no conversion needed - return as-is
+  private static convertApprovalFieldNamesFromDB(tableName: string, record: any): any {
+    if (!record) return record;
+
+    if (tableName === 'studentapprovals') {
+      return record;
+    }
+
+    if (tableName === 'teacherapprovals') {
+      const hasNewSchemaFields =
+        'teacherEmail' in record ||
+        'teacherFullName' in record ||
+        'teacherPhoneNumber' in record ||
+        'approvalStatus' in record;
+
+      if (!hasNewSchemaFields) {
+        return record;
+      }
+
+      const fieldMappings: Record<string, string> = {
+        teacherEmail: 'email',
+        teacherFullName: 'fullName',
+        teacherPhoneNumber: 'phoneNumber',
+        approvalStatus: 'status',
+      };
+
+      const converted: any = {};
+      for (const [key, value] of Object.entries(record)) {
+        const mappedKey = fieldMappings[key] || key;
+        converted[mappedKey] = value;
+      }
+      return converted;
+    }
+
     return record;
+  }
+
+  private static isMissingColumnError(error: any): boolean {
+    return Boolean(
+      error &&
+        (error.code === 'PGRST204' ||
+          (typeof error.message === 'string' && error.message.includes('schema cache')))
+    );
   }
 
   /**
@@ -105,7 +175,7 @@ export class SupabaseCrudService {
       if (tableName === 'users') {
         dataToInsert = this.convertUserFieldNames(dataToInsert);
       } else if (tableName === 'studentapprovals' || tableName === 'teacherapprovals') {
-        dataToInsert = this.convertApprovalFieldNames(dataToInsert);
+        dataToInsert = this.convertApprovalFieldNames(tableName, dataToInsert);
       }
       
       // Do not auto-inject timestamp fields because table schemas vary
@@ -114,10 +184,20 @@ export class SupabaseCrudService {
 
       console.log(`[SupabaseCrudService] Inserting into ${tableName}:`, dataToInsert);
       
-      const { data, error } = await supabase
-        .from(tableName)
-        .insert([dataToInsert])
-        .select();
+      const attemptInsert = async (payload: any) => {
+        return await supabase
+          .from(tableName)
+          .insert([payload])
+          .select();
+      };
+
+      let { data, error } = await attemptInsert(dataToInsert);
+
+      if (error && tableName === 'teacherapprovals' && this.isMissingColumnError(error)) {
+        // Fallback to legacy schema if new mapping fails
+        const legacyPayload = { ...record };
+        ({ data, error } = await attemptInsert(legacyPayload));
+      }
 
       if (error) {
         const errorMsg = `Supabase Error [${error.code}]: ${error.message}`;
@@ -158,7 +238,7 @@ export class SupabaseCrudService {
       if (tableName === 'users') {
         items = items.map(item => this.convertUserFieldNamesFromDB(item));
       } else if (tableName === 'studentapprovals' || tableName === 'teacherapprovals') {
-        items = items.map(item => this.convertApprovalFieldNamesFromDB(item));
+        items = items.map(item => this.convertApprovalFieldNamesFromDB(tableName, item));
       }
       
       return { items: items as T[] };
@@ -195,7 +275,7 @@ export class SupabaseCrudService {
     if (tableName === 'users' && result) {
       result = this.convertUserFieldNamesFromDB(result);
     } else if ((tableName === 'studentapprovals' || tableName === 'teacherapprovals') && result) {
-      result = this.convertApprovalFieldNamesFromDB(result);
+      result = this.convertApprovalFieldNamesFromDB(tableName, result);
     }
     
     return result as T;
@@ -218,16 +298,27 @@ export class SupabaseCrudService {
     
     let dataToUpdate: any = { ...record };
     
-    // Convert field names for the users table
+    // Convert field names for tables with non-camel schema
     if (tableName === 'users') {
       dataToUpdate = this.convertUserFieldNames(dataToUpdate);
+    } else if (tableName === 'studentapprovals' || tableName === 'teacherapprovals') {
+      dataToUpdate = this.convertApprovalFieldNames(tableName, dataToUpdate);
     }
     
-    const { data, error } = await supabase
-      .from(tableName)
-      .update(dataToUpdate)
-      .eq("_id", record._id)
-      .select();
+    const attemptUpdate = async (payload: any) => {
+      return await supabase
+        .from(tableName)
+        .update(payload)
+        .eq("_id", record._id)
+        .select();
+    };
+
+    let { data, error } = await attemptUpdate(dataToUpdate);
+
+    if (error && tableName === 'teacherapprovals' && this.isMissingColumnError(error)) {
+      const legacyPayload = { ...record };
+      ({ data, error } = await attemptUpdate(legacyPayload));
+    }
 
     if (error) {
       throw new Error(`Error updating record in ${tableName}: ${error.message}`);

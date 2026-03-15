@@ -13,6 +13,9 @@ export default function TeacherApprovalPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending'>('pending');
+  const getStatus = (approval: TeacherApprovalRecord): string => (
+    approval.status ?? (approval as any).approvalStatus ?? 'pending'
+  );
 
   // Load approvals on mount
   useEffect(() => {
@@ -206,7 +209,7 @@ export default function TeacherApprovalPage() {
 
   const filteredApprovals = approvals.filter(approval => {
     if (filter === 'all') return true;
-    return approval.status === 'pending';
+    return getStatus(approval) === 'pending';
   });
 
   const getStatusColor = (status?: string) => {
@@ -320,9 +323,9 @@ export default function TeacherApprovalPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-heading text-lg">{approval.fullName}</h3>
-                      <div className={`px-3 py-1 rounded-full text-xs font-heading flex items-center gap-1 border ${getStatusColor(approval.status)}`}>
-                        {getStatusIcon(approval.status)}
-                        {approval.status}
+                      <div className={`px-3 py-1 rounded-full text-xs font-heading flex items-center gap-1 border ${getStatusColor(getStatus(approval))}`}>
+                        {getStatusIcon(getStatus(approval))}
+                        {getStatus(approval)}
                       </div>
                     </div>
                     <div className="space-y-1 text-sm">
@@ -371,9 +374,9 @@ export default function TeacherApprovalPage() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h2 className="font-heading text-2xl mb-2">{selectedApproval.fullName}</h2>
-                  <div className={`inline-flex px-3 py-1 rounded-full text-sm font-heading items-center gap-2 border ${getStatusColor(selectedApproval.status)}`}>
-                    {getStatusIcon(selectedApproval.status)}
-                    {selectedApproval.status}
+                  <div className={`inline-flex px-3 py-1 rounded-full text-sm font-heading items-center gap-2 border ${getStatusColor(getStatus(selectedApproval))}`}>
+                    {getStatusIcon(getStatus(selectedApproval))}
+                    {getStatus(selectedApproval)}
                   </div>
                 </div>
                 <button
@@ -418,7 +421,7 @@ export default function TeacherApprovalPage() {
               </div>
 
               {/* Actions */}
-              {selectedApproval.approvalStatus === 'pending' && (
+              {getStatus(selectedApproval) === 'pending' && (
                 <div className="space-y-4">
                   {/* Buttons */}
                   <div className="flex gap-3">
@@ -464,7 +467,7 @@ export default function TeacherApprovalPage() {
                 </div>
               )}
 
-              {selectedApproval.approvalStatus === 'approved' && selectedApproval.approvalDate && (
+              {getStatus(selectedApproval) === 'approved' && selectedApproval.approvalDate && (
                 <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
                   <p className="font-paragraph text-sm text-green-400">
                     ✓ Approved on {new Date(selectedApproval.approvalDate).toLocaleString()}

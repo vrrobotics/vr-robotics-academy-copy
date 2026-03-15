@@ -39,6 +39,22 @@ export default function AdminNewTeachersPage() {
     loadApplications();
   }, []);
 
+  const normalizeApplication = (app: TeacherApprovalRecord): TeacherApprovalRecord => ({
+    ...app,
+    teacherEmail: app.teacherEmail ?? app.email,
+    teacherFullName: app.teacherFullName ?? app.fullName,
+    teacherPhoneNumber: app.teacherPhoneNumber ?? app.phoneNumber,
+    approvalStatus: app.approvalStatus ?? app.status,
+    submissionDate: app.submissionDate ?? (app as any).submissiondate,
+    approvalDate: app.approvalDate ?? (app as any).approvaldate,
+    submittedDocumentNames: app.submittedDocumentNames ?? (app as any).submitteddocumentnames,
+    submittedDocuments: app.submittedDocuments ?? (app as any).submitteddocuments,
+  });
+
+  const getStatus = (app: TeacherApprovalRecord): string => (
+    app.approvalStatus ?? app.status ?? 'pending'
+  );
+
   const loadApplications = async () => {
     try {
       setIsLoading(true);
@@ -47,7 +63,7 @@ export default function AdminNewTeachersPage() {
       const { items } = await BaseCrudService.getAll<TeacherApprovalRecord>('teacherapprovals');
       console.log('[AdminNewTeachersPage] Loaded applications:', items.length);
       
-      setApplications(items || []);
+      setApplications((items || []).map(normalizeApplication));
     } catch (error) {
       console.error('[AdminNewTeachersPage] Error loading applications:', error);
       setErrorMessage('Failed to load teacher applications');
@@ -113,7 +129,7 @@ export default function AdminNewTeachersPage() {
 
   const filteredApplications = applications.filter(app => {
     if (filter === 'all') return true;
-    return app.approvalStatus === 'pending';
+    return getStatus(app) === 'pending';
   });
 
   const getStatusColor = (status?: string) => {
@@ -325,9 +341,9 @@ export default function AdminNewTeachersPage() {
                           {app.teacherEmail}
                         </p>
                       </div>
-                      <div className={`flex-shrink-0 px-2 py-1 rounded border text-xs font-heading flex items-center gap-1 ${getStatusColor(app.approvalStatus)}`}>
-                        {getStatusIcon(app.approvalStatus)}
-                        <span className="capitalize">{app.approvalStatus || 'pending'}</span>
+                      <div className={`flex-shrink-0 px-2 py-1 rounded border text-xs font-heading flex items-center gap-1 ${getStatusColor(getStatus(app))}`}>
+                        {getStatusIcon(getStatus(app))}
+                        <span className="capitalize">{getStatus(app)}</span>
                       </div>
                     </div>
                   </motion.button>
@@ -350,9 +366,9 @@ export default function AdminNewTeachersPage() {
                       <h2 className="font-heading text-2xl font-bold text-foreground mb-2">
                         {selectedApplication.teacherFullName}
                       </h2>
-                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border font-heading text-sm ${getStatusColor(selectedApplication.approvalStatus)}`}>
-                        {getStatusIcon(selectedApplication.approvalStatus)}
-                        <span className="capitalize">{selectedApplication.approvalStatus || 'pending'}</span>
+                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border font-heading text-sm ${getStatusColor(getStatus(selectedApplication))}`}>
+                        {getStatusIcon(getStatus(selectedApplication))}
+                        <span className="capitalize">{getStatus(selectedApplication)}</span>
                       </div>
                     </div>
                   </div>
@@ -466,7 +482,7 @@ export default function AdminNewTeachersPage() {
                 </div>
 
                 {/* Actions */}
-                {selectedApplication.approvalStatus === 'pending' && (
+                {getStatus(selectedApplication) === 'pending' && (
                   <div className="p-6 rounded-lg bg-foreground/5 border border-foreground/10">
                     <h3 className="font-heading text-lg font-semibold text-foreground mb-4">
                       Actions
@@ -514,7 +530,7 @@ export default function AdminNewTeachersPage() {
                   </div>
                 )}
 
-                {selectedApplication.approvalStatus === 'approved' && (
+                {getStatus(selectedApplication) === 'approved' && (
                   <div className="p-6 rounded-lg bg-green-500/10 border border-green-500/30">
                     <p className="font-paragraph text-sm text-green-400">
                       ✓ This application has been approved and the teacher has been granted portal access.
