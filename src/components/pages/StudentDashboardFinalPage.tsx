@@ -9,7 +9,6 @@ import { BookOpen, Award, CheckCircle, AlertCircle, Calendar, Play, Bell } from 
 import { MeetingCalendar } from '@/components/dashboard/MeetingCalendar';
 import { Image } from '@/components/ui/image';
 import { format } from 'date-fns';
-import EnrollmentOnboardingPopup from '@/components/EnrollmentOnboardingPopup';
 
 export default function StudentDashboardFinalPage() {
   const { currentRole, userId, isLoading: roleLoading } = useRole();
@@ -28,7 +27,7 @@ export default function StudentDashboardFinalPage() {
   const [studentEmail, setStudentEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showEnrollmentPopup, setShowEnrollmentPopup] = useState(false);
+  // const [showEnrollmentPopup, setShowEnrollmentPopup] = useState(false);
 
   // Helper function to check if class is still joinable
   const isClassJoinable = (upcomingClass: UpcomingClasses): boolean => {
@@ -51,16 +50,16 @@ export default function StudentDashboardFinalPage() {
     loadDashboardData();
   }, [currentRole, userId, roleLoading]);
 
-  // Check for enrollments and show popup if none exist
-  useEffect(() => {
-    // Show popup for public access or if no enrollments
-    if (!userId) {
-      // For public access, show the welcome video
-      setTimeout(() => setShowEnrollmentPopup(true), 500);
-    } else if (enrollments.length === 0 && !isLoading && !error) {
-      setShowEnrollmentPopup(true);
-    }
-  }, [enrollments, isLoading, error, userId]);
+  // Check for enrollments and show popup if none exist - DISABLED
+  // useEffect(() => {
+  //   // Show popup for public access or if no enrollments
+  //   if (!userId) {
+  //     // For public access, show the welcome video
+  //     setTimeout(() => setShowEnrollmentPopup(true), 500);
+  //   } else if (enrollments.length === 0 && !isLoading && !error) {
+  //     setShowEnrollmentPopup(true);
+  //   }
+  // }, [enrollments, isLoading, error, userId]);
 
   const loadDashboardData = async () => {
     try {
@@ -172,10 +171,11 @@ export default function StudentDashboardFinalPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
-      <EnrollmentOnboardingPopup 
+      {/* Enrollment Video Popup Disabled */}
+      {/* <EnrollmentOnboardingPopup 
         isOpen={showEnrollmentPopup}
         onClose={() => setShowEnrollmentPopup(false)}
-      />
+      /> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-12">
