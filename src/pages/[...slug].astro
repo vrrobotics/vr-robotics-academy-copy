@@ -4,9 +4,27 @@ import AppRouter from "@/components/Router";
 export const prerender = true;
 
 export async function getStaticPaths() {
-  return [
-    { params: { slug: undefined } },
+  // Add all demo routes and other client-side routes
+  const routes = [
+    { params: { slug: undefined } }, // Home
+    // Demo Routes
+    { params: { slug: 'demo/admin-dashboard' } },
+    { params: { slug: 'demo/teacher-dashboard' } },
+    { params: { slug: 'demo/student-dashboard' } },
+    // Auth Routes
+    { params: { slug: 'login' } },
+    { params: { slug: 'student-signup' } },
+    { params: { slug: 'teacher-login' } },
+    { params: { slug: 'teacher-signup' } },
+    // Dashboard Routes
+    { params: { slug: 'student-dashboard' } },
+    { params: { slug: 'student-dashboard-new' } },
+    { params: { slug: 'student-dashboard-final' } },
+    { params: { slug: 'teacher-dashboard' } },
+    { params: { slug: 'admin-dashboard' } },
+    { params: { slug: 'admin-dashboard-new' } },
   ];
+  return routes;
 }
 ---
 
