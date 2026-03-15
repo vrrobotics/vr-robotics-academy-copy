@@ -58,6 +58,14 @@ A modern, full-featured Wix Astro template built with React, TypeScript, and Tai
 
 The development server will start and you can view your site at `http://localhost:4321`.
 
+## Public Dashboard Links
+
+Access the public dashboards without login:
+
+- **Admin Dashboard**: http://127.0.0.1:3000/admin-dashboard-public
+- **Teacher Dashboard**: http://127.0.0.1:3000/teacher-dashboard-public
+- **Student Dashboard**: http://127.0.0.1:3000/student-dashboard-public
+
 ## 📁 Project Structure
 
 ```
